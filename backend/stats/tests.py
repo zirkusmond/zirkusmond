@@ -575,7 +575,7 @@ class DashboardCallbackTest(TestCase):
         self.assertIn("50.0%", kpis_with_footer["Payments"])
         self.assertIn("vs previous period", kpis_with_footer["Payments"])
         self.assertIn("↑", kpis_with_footer["Payments"])  # Green up arrow
-        self.assertIn("text-green-600", kpis_with_footer["Payments"])
+        self.assertIn("#16a34a", kpis_with_footer["Payments"])  # Green color
 
     def test_previous_period_comparison_shows_negative_change(self) -> None:
         now = datetime(2026, 6, 10, 12, 0, tzinfo=UTC)
@@ -600,7 +600,7 @@ class DashboardCallbackTest(TestCase):
         self.assertIsNotNone(kpis_with_footer["Visitors (excluding bots)"])
         self.assertIn("50.0%", kpis_with_footer["Visitors (excluding bots)"])
         self.assertIn("↓", kpis_with_footer["Visitors (excluding bots)"])  # Red down arrow
-        self.assertIn("text-red-600", kpis_with_footer["Visitors (excluding bots)"])
+        self.assertIn("#dc2626", kpis_with_footer["Visitors (excluding bots)"])  # Red color
 
     def test_all_time_range_has_no_footer_comparison(self) -> None:
         reservation = make_reservation(self.event)
