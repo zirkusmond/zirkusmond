@@ -23,6 +23,11 @@
             {% component "unfold/components/title.html" %}
               {{ kpi.metric }}
             {% endcomponent %}
+            {% if kpi.footer %}
+              <div class="text-right text-sm">
+                {{ kpi.footer }}
+              </div>
+            {% endif %}
           {% endcomponent %}
         {% endfor %}
       </div>

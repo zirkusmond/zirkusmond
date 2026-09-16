@@ -22,6 +22,7 @@ from .admin import PageViewAdmin
 from .components import DeviceBreakdownBarChart, VisitorsLineChart
 from .dashboard import _format_duration, dashboard_callback
 from .models import PageView
+from .period_comparison import _calculate_change
 from .ranges import (
     RANGES_BY_KEY,
     range_bucket_labels,
@@ -182,6 +183,19 @@ class PageViewDetectDeviceTest(TestCase):
             with self.subTest(ua=ua):
                 self.assertEqual(PageView.detect_device(ua), PageView.DeviceChoices.BOT)
 
+    def test_detects_ai_crawlers_as_bots(self) -> None:
+        for ua in [
+            "MistralAI-User/1.0",
+            "Hunyuan/1.0",
+            "GPTBot/1.0",
+            "ChatGPT-User/1.0",
+            "anthropic-ai",
+            "claude-web/1.0",
+            "PerplexityBot/1.0",
+        ]:
+            with self.subTest(ua=ua):
+                self.assertEqual(PageView.detect_device(ua), PageView.DeviceChoices.BOT)
+
 
 # ---------------------------------------------------------------------------
 # PageViewManager
@@ -218,6 +232,22 @@ class PageViewManagerAvgTimeOnSiteTest(TestCase):
             session_key="b", entered_at=entered, left_at=entered + timedelta(seconds=120)
         )
         self.assertEqual(PageView.objects.avg_time_on_site(), timedelta(seconds=90))
+
+    def test_excludes_abandoned_tabs_over_30_minutes(self) -> None:
+        now = timezone.now()
+        # Normal page view: 2 minutes
+        make_page_view(
+            session_key="a",
+            entered_at=now - timedelta(minutes=62),
+            left_at=now - timedelta(minutes=60),
+        )
+        # Abandoned tab: 8 hours (should be excluded)
+        make_page_view(session_key="b", entered_at=now - timedelta(hours=8), left_at=now)
+
+        # Average should only include the 2-minute page view
+        avg = PageView.objects.avg_time_on_site()
+        self.assertIsNotNone(avg)
+        self.assertEqual(avg, timedelta(minutes=2))
 
     def test_filters_by_since(self) -> None:
         old_entered = timezone.now() - timedelta(days=10)
@@ -397,6 +427,27 @@ class FormatDurationTest(TestCase):
         self.assertEqual(_format_duration(timedelta(seconds=0)), "0m 0s")
 
 
+class CalculateChangeTest(TestCase):
+    def test_calculates_positive_change(self) -> None:
+        self.assertEqual(_calculate_change(150, 100), 50.0)
+
+    def test_calculates_negative_change(self) -> None:
+        self.assertEqual(_calculate_change(50, 100), -50.0)
+
+    def test_returns_zero_when_no_change(self) -> None:
+        self.assertEqual(_calculate_change(100, 100), 0.0)
+
+    def test_returns_100_when_previous_is_zero_and_current_is_positive(self) -> None:
+        self.assertEqual(_calculate_change(50, 0), 100)
+
+    def test_returns_zero_when_both_are_zero(self) -> None:
+        self.assertEqual(_calculate_change(0, 0), 0)
+
+    def test_rounds_to_one_decimal_place(self) -> None:
+        self.assertEqual(_calculate_change(103, 100), 3.0)
+        self.assertEqual(_calculate_change(106, 100), 6.0)
+
+
 class DashboardCallbackTest(TestCase):
     def setUp(self) -> None:
         self.show = make_show(base_ticket_price=15)
@@ -413,7 +464,7 @@ class DashboardCallbackTest(TestCase):
         kpis = self._kpis(self._callback())
         self.assertEqual(kpis["Visitors (excluding bots)"], 0)
         self.assertEqual(kpis["Payments"], 0)
-        self.assertIsNone(kpis["Revenue"])
+        self.assertEqual(kpis["Revenue"], "0 €")
         self.assertEqual(kpis["Tickets sold"], 0)
         self.assertEqual(kpis["Page views (excluding bots)"], 0)
         self.assertEqual(kpis["Bounce rate"], "0.0%")
@@ -428,7 +479,7 @@ class DashboardCallbackTest(TestCase):
 
         kpis = self._kpis(self._callback())
         self.assertEqual(kpis["Payments"], 1)
-        self.assertEqual(kpis["Revenue"], Decimal("30.00"))
+        self.assertEqual(kpis["Revenue"], "30 €")
         self.assertEqual(kpis["Tickets sold"], 1)
 
     def test_tickets_sold_counts_purchaser_and_guests(self) -> None:
@@ -447,7 +498,7 @@ class DashboardCallbackTest(TestCase):
 
         kpis = self._kpis(self._callback())
         self.assertEqual(kpis["Payments"], 0)
-        self.assertIsNone(kpis["Revenue"])
+        self.assertEqual(kpis["Revenue"], "0 €")
 
     def test_visitors_and_page_views_exclude_bots(self) -> None:
         make_page_view(session_key="human-1")
@@ -480,8 +531,90 @@ class DashboardCallbackTest(TestCase):
 
     def test_includes_chart_titles(self) -> None:
         context = self._callback({"range": "week"})
-        self.assertEqual(context["visits_chart_title"], "Visits, excluding bots)")
+        self.assertEqual(context["visits_chart_title"], "Visits (excluding bots)")
         self.assertEqual(context["device_chart_title"], "Sessions by device")
+
+    def test_includes_previous_period_comparison_in_footer(self) -> None:
+        now = datetime(2026, 6, 10, 12, 0, tzinfo=UTC)
+
+        # Current period: last 7 days (June 3-10) - 3 payments
+        current_period_start = now - timedelta(days=7)
+        reservation1 = make_reservation(self.event)
+        make_payment(reservation1, total=Decimal("30.00"), created_at=current_period_start)
+        reservation2 = make_reservation(self.event, email="test2@example.com")
+        make_payment(
+            reservation2,
+            total=Decimal("30.00"),
+            created_at=current_period_start + timedelta(days=1),
+        )
+        reservation3 = make_reservation(self.event, email="test3@example.com")
+        make_payment(
+            reservation3,
+            total=Decimal("30.00"),
+            created_at=current_period_start + timedelta(days=2),
+        )
+
+        # Previous period: June 27-June 3 (7 days before) - 2 payments
+        previous_period_start = now - timedelta(days=14)
+        reservation4 = make_reservation(self.event, email="test4@example.com")
+        make_payment(reservation4, total=Decimal("30.00"), created_at=previous_period_start)
+        reservation5 = make_reservation(self.event, email="test5@example.com")
+        make_payment(
+            reservation5,
+            total=Decimal("30.00"),
+            created_at=previous_period_start + timedelta(days=1),
+        )
+
+        with frozen_time(now):
+            context = self._callback({"range": "week"})
+
+        kpis_with_footer = {kpi["title"]: kpi.get("footer") for kpi in context["kpis"]}
+
+        # 3 payments vs 2 payments = +50% change
+        self.assertIsNotNone(kpis_with_footer["Payments"])
+        self.assertIn("50.0%", kpis_with_footer["Payments"])
+        self.assertIn("vs previous period", kpis_with_footer["Payments"])
+        self.assertIn("↑", kpis_with_footer["Payments"])  # Green up arrow
+        self.assertIn("text-green-600", kpis_with_footer["Payments"])
+
+    def test_previous_period_comparison_shows_negative_change(self) -> None:
+        now = datetime(2026, 6, 10, 12, 0, tzinfo=UTC)
+
+        # Current period: 2 visitors
+        make_page_view(session_key="current-1", entered_at=now - timedelta(hours=12))
+        make_page_view(session_key="current-2", entered_at=now - timedelta(hours=6))
+
+        # Previous period: 4 visitors
+        prev_start = now - timedelta(days=2)
+        make_page_view(session_key="prev-1", entered_at=prev_start)
+        make_page_view(session_key="prev-2", entered_at=prev_start + timedelta(hours=3))
+        make_page_view(session_key="prev-3", entered_at=prev_start + timedelta(hours=6))
+        make_page_view(session_key="prev-4", entered_at=prev_start + timedelta(hours=9))
+
+        with frozen_time(now):
+            context = self._callback({"range": "day"})
+
+        kpis_with_footer = {kpi["title"]: kpi.get("footer") for kpi in context["kpis"]}
+
+        # 2 visitors vs 4 visitors = -50% change
+        self.assertIsNotNone(kpis_with_footer["Visitors (excluding bots)"])
+        self.assertIn("50.0%", kpis_with_footer["Visitors (excluding bots)"])
+        self.assertIn("↓", kpis_with_footer["Visitors (excluding bots)"])  # Red down arrow
+        self.assertIn("text-red-600", kpis_with_footer["Visitors (excluding bots)"])
+
+    def test_all_time_range_has_no_footer_comparison(self) -> None:
+        reservation = make_reservation(self.event)
+        make_payment(reservation, total=Decimal("30.00"))
+        make_page_view(session_key="visitor-1")
+
+        context = self._callback({"range": "all"})
+
+        kpis_with_footer = {kpi["title"]: kpi.get("footer") for kpi in context["kpis"]}
+
+        # "All time" should have None for all footers (no previous period to compare)
+        self.assertIsNone(kpis_with_footer.get("Payments"))
+        self.assertIsNone(kpis_with_footer.get("Visitors (excluding bots)"))
+        self.assertIsNone(kpis_with_footer.get("Revenue"))
 
 
 # ---------------------------------------------------------------------------
@@ -603,7 +736,7 @@ class AdminDashboardTest(TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
         self.assertIn("Bounce rate", content)
-        self.assertIn("Visits, excluding bots)", content)
+        self.assertIn("Visits (excluding bots)", content)
         self.assertIn("Sessions by device", content)
         self.assertIn("Last 7 days", content)  # range switcher navigation item
 
@@ -655,6 +788,10 @@ class PageViewMiddlewareTest(TestCase):
 
     def test_skips_preload_requests(self) -> None:
         self.client.get("/", HTTP_X_PRELOAD="1")
+        self.assertEqual(PageView.objects.count(), 0)
+
+    def test_skips_ssr_internal_requests_from_localhost(self) -> None:
+        self.client.get("/", REMOTE_ADDR="127.0.0.1", HTTP_USER_AGENT="node")
         self.assertEqual(PageView.objects.count(), 0)
 
     def test_records_referer_header(self) -> None:

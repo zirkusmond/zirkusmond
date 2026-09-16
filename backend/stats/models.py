@@ -45,6 +45,17 @@ class PageView(models.Model):
         "node-fetch",
         "axios/",
         "scrapy",
+        # AI crawlers
+        "anthropic-ai",
+        "claude-web",
+        "cohere-ai",
+        "gptbot",
+        "chatgpt",
+        "bingpreview",
+        "perplexitybot",
+        "youbot",
+        "mistralai",
+        "hunyuan",
     )
 
     @classmethod

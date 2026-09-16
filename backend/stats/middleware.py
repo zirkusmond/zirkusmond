@@ -28,6 +28,12 @@ class PageViewMiddleware:
         if request.META.get("HTTP_X_PRELOAD") == "1":
             return response
 
+        # Skip SSR internal requests: the frontend's Node.js server fetches from
+        # Django at 127.0.0.1 to render pages server-side. These aren't visitors.
+        user_agent = request.META.get("HTTP_USER_AGENT", "").lower()
+        if request.META.get("REMOTE_ADDR") == "127.0.0.1" and user_agent == "node":
+            return response
+
         if not request.session.session_key:
             request.session.save()  # force a session_key to exist
 

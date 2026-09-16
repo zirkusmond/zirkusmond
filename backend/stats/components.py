@@ -1,6 +1,9 @@
 import json
 
+from django.db import models
 from unfold.components import BaseComponent, register_component
+
+from reservations.payments.models import Payment
 
 from .models import PageView
 from .ranges import range_bucket_labels, range_since, resolve_range
@@ -16,6 +19,18 @@ class VisitorsLineChart(BaseComponent):
         buckets = range_bucket_labels(range_spec, since)
         counts_by_bucket = PageView.objects.visits_per_bucket(range_spec.trunc, since=since)
 
+        # Query completed payments per bucket
+        payments_qs = Payment.objects.filter(status=Payment.Status.COMPLETED)
+        if since:
+            payments_qs = payments_qs.filter(created_at__gte=since)
+
+        payments_by_bucket = dict(
+            payments_qs.annotate(bucket=range_spec.trunc("created_at"))
+            .values("bucket")
+            .annotate(count=models.Count("id"))
+            .values_list("bucket", "count")
+        )
+
         context.update(
             {
                 "height": 300,
@@ -28,7 +43,15 @@ class VisitorsLineChart(BaseComponent):
                                 "data": [counts_by_bucket.get(bucket, 0) for bucket in buckets],
                                 "borderColor": "var(--color-primary-600)",
                                 "backgroundColor": "var(--color-primary-200)",
-                            }
+                                "displayYAxis": True,
+                            },
+                            {
+                                "label": "Payments",
+                                "data": [payments_by_bucket.get(bucket, 0) for bucket in buckets],
+                                "borderColor": "var(--color-green-600)",
+                                "backgroundColor": "var(--color-green-200)",
+                                "displayYAxis": True,
+                            },
                         ],
                     }
                 ),
@@ -61,6 +84,7 @@ class DeviceBreakdownBarChart(BaseComponent):
                                     breakdown.get(choice.value, 0) for choice in device_choices
                                 ],
                                 "backgroundColor": "var(--color-primary-600)",
+                                "displayYAxis": True,
                             }
                         ],
                     }

@@ -18,13 +18,19 @@ class PageViewManager(models.Manager):
         return round(bounced / total * 100, 2)
 
     def avg_time_on_site(self, since=None):
+        from datetime import timedelta
+
         qs = self.get_queryset().filter(left_at__isnull=False)
 
         if since:
             qs = qs.filter(entered_at__gte=since)
 
-        result = qs.annotate(duration=models.F("left_at") - models.F("entered_at")).aggregate(
-            avg=models.Avg("duration")
+        # Exclude abandoned tabs left open overnight (durations > 30 minutes).
+        max_duration = timedelta(minutes=30)
+        result = (
+            qs.annotate(duration=models.F("left_at") - models.F("entered_at"))
+            .filter(duration__lte=max_duration)
+            .aggregate(avg=models.Avg("duration"))
         )
 
         return result["avg"]
