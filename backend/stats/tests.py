@@ -694,7 +694,7 @@ class PageViewAdminConfigTest(TestCase):
     def test_list_display_and_search_configuration(self) -> None:
         self.assertEqual(
             self.admin.list_display,
-            ("path", "device_type", "session_key", "entered_at", "left_at"),
+            ("path", "referer", "device_type", "session_key", "entered_at", "left_at"),
         )
         self.assertEqual(self.admin.search_fields, ("path", "session_key"))
 
