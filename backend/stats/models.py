@@ -56,6 +56,13 @@ class PageView(models.Model):
         "youbot",
         "mistralai",
         "hunyuan",
+        # Meta link-preview crawlers
+        "externalagent",
+        "externalads",
+        "webindexer",
+        # Others not covered by generic "bot"/"spider"
+        "applebot",
+        "claude-user",
     )
 
     @classmethod

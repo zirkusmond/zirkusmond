@@ -16,7 +16,7 @@ class PageViewMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        if request.path.startswith(("/mondmin", "/static", "/media")):
+        if request.path.startswith(("/mondmin", "/static", "/media", "/api")):
             return response
 
         if request.path in _NON_PAGE_VIEW_PATHS:
@@ -32,6 +32,8 @@ class PageViewMiddleware:
         # Django at 127.0.0.1 to render pages server-side. These aren't visitors.
         user_agent = request.META.get("HTTP_USER_AGENT", "").lower()
         if request.META.get("REMOTE_ADDR") == "127.0.0.1" and user_agent == "node":
+            return response
+        if PageView.detect_device(user_agent) == PageView.DeviceChoices.BOT:
             return response
 
         if not request.session.session_key:
@@ -50,16 +52,13 @@ class PageViewMiddleware:
             last.left_at = timezone.now()
             last.save(update_fields=["left_at"])
 
-        # get device type
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-
         # create new pageView. left_at is now null on this pv
         PageView.objects.create(
             session_key=session_key,
             path=request.path,
             referer=request.META.get("HTTP_REFERER", ""),
             user_agent=request.META.get("HTTP_USER_AGENT", ""),
-            ip_address=request.META.get("REMOTE_ADDR"),
+            ip_address=request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or None,
             device_type=PageView.detect_device(user_agent),
         )
 

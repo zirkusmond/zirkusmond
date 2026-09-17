@@ -18,6 +18,9 @@ UNFOLD = {
             "href": lambda request: static("images/logo.webp"),
         },
     ],
+    "STYLES": [
+        lambda request: static("css/admin-custom.css"),
+    ],
     "SIDEBAR": {
         "show_search": False,
         "show_all_applications": False,
