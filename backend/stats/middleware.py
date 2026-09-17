@@ -1,9 +1,34 @@
+import re
+
 from django.utils import timezone
 
 from .models import PageView
 
 # Server-to-server callers that never represent a visitor looking at a page.
 _NON_PAGE_VIEW_PATHS = ("/payments/webhook/stripe",)
+
+# Scanner paths — block before recording PageView
+_SCANNER_PATH_PATTERNS = (
+    re.compile(r"^/\.(?!well-known/)"),  # hidden files/dirs except /.well-known/
+    re.compile(r"^/(proc|etc|sys)/"),  # pseudo-filesystem probes
+    re.compile(r"\.(php|asp|aspx|jsp|cgi|cfm)$"),  # script extensions
+)
+
+_SCANNER_PATH_PREFIXES = (
+    "/wp-admin",
+    "/wp-login",
+    "/xmlrpc",
+    "/phpmyadmin",
+    "/adminer",
+    "/myadmin",
+)
+
+
+def _is_scanner_path(path):
+    """Return True if path matches known scanner/bot patterns."""
+    if path.startswith(_SCANNER_PATH_PREFIXES):
+        return True
+    return any(pattern.search(path) for pattern in _SCANNER_PATH_PATTERNS)
 
 
 class PageViewMiddleware:
@@ -20,6 +45,9 @@ class PageViewMiddleware:
             return response
 
         if request.path in _NON_PAGE_VIEW_PATHS:
+            return response
+
+        if _is_scanner_path(request.path):
             return response
 
         # TanStack Router's hover/touch "intent" preloading fires a real loader
