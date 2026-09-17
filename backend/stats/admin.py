@@ -7,7 +7,7 @@ from .models import PageView
 
 @admin.register(PageView)
 class PageViewAdmin(ModelAdmin):
-    list_display = ("path", "device_type", "session_key", "entered_at", "left_at")
+    list_display = ("path", "referer", "device_type", "session_key", "entered_at", "left_at")
     list_filter = ("device_type", "entered_at")
     search_fields = ("path", "session_key")
     readonly_fields = [

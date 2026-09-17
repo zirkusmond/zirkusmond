@@ -1,3 +1,5 @@
+from urllib.parse import parse_qs, urlparse
+
 from django.db import models
 
 from .managers import PageViewManager
@@ -76,3 +78,23 @@ class PageView(models.Model):
             return cls.DeviceChoices.MOBILE
 
         return cls.DeviceChoices.DESKTOP
+
+    @property
+    def traffic_source(self) -> str:
+        # Check UTM params first
+        if "?" in self.path:
+            parsed = urlparse(self.path)
+            params = parse_qs(parsed.query)
+            if "utm_source" in params:
+                return params["utm_source"][0]
+
+        # Fall back to referer-based detection
+        ref = self.referer.lower()
+        if not ref:
+            return "direct"
+        if "instagram.com" in ref:
+            return "instagram"
+        if "facebook.com" in ref or "fb.com" in ref:
+            return "facebook"
+
+        return "other"
