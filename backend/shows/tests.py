@@ -132,9 +132,6 @@ class ShowModelTest(TestCase):
         self.assertTrue(self.show.sold_out())
 
     def test_sold_out_false_when_events_not_sold_out(self) -> None:
-        from reservations.models import Payment, Reservation
-
-        event = make_event(self.show)
         self.assertFalse(self.show.sold_out())
 
     def test_sold_out_true_when_all_future_events_sold_out(self) -> None:
@@ -184,7 +181,7 @@ class ShowModelTest(TestCase):
             reservation_capacity=1,
             open_for_reservation=True,
         )
-        available_event = Event.objects.create(
+        Event.objects.create(
             show=self.show,
             admission=timezone.now() + timedelta(days=10),
             begin=timezone.now() + timedelta(days=10, hours=1),
