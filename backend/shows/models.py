@@ -130,6 +130,9 @@ class Show(models.Model):
             return base_price + 10
         return 15
 
+    def sold_out(self) -> bool:
+        return all(event.sold_out() for event in self.future_events())
+
     class Meta:
         verbose_name_plural = "all shows"
 

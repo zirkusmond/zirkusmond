@@ -5,6 +5,7 @@ export interface ShowCard {
   title: string;
   cardImage: string;
   eventDates: string[];
+  soldOut: boolean;
 }
 
 export interface HomepageResponse {
@@ -16,6 +17,7 @@ export interface ShowEvent {
   id: string;
   timeAndDate: string;
   admissionTime: string;
+  soldOut: boolean;
 }
 
 export interface Show {
@@ -36,6 +38,7 @@ export interface Show {
   upcomingEvents: ShowEvent[];
   lastModified: string;
   reservationOpen: boolean;
+  soldOut: boolean;
 }
 
 export interface ShowDetailResponse {

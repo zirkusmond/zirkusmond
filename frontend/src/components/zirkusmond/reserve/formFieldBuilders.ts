@@ -44,10 +44,12 @@ export const buildTicketFields = ({
       placeholder: i18n.t("form_event_placeholder"),
       value: selectedEventId,
       onChange: setSelectedEventId,
-      options: show.upcomingEvents.map((event: ShowEvent) => ({
-        value: event.id,
-        label: event.timeAndDate,
-      })),
+      options: show.upcomingEvents
+        .filter((event: ShowEvent) => !event.soldOut)
+        .map((event: ShowEvent) => ({
+          value: event.id,
+          label: event.timeAndDate,
+        })),
     },
     {
       fieldType: FieldType.Number,

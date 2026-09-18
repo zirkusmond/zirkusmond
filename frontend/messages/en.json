@@ -113,6 +113,7 @@
   "show_reserve": "Reserve",
   "show_buy_tickets": "Buy Tickets",
   "show_reservations_not_open": "Reservations are not yet open!",
+  "show_sold_out": "Sold out! A limited number of tickets will still be sold at the door.",
 
   "not_found_title": "{entity} not found",
   "not_found_message": "This {entity} doesn't exist or is no longer available.",

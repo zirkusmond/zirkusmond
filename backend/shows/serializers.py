@@ -9,7 +9,7 @@ class ShowCardSerializer(ModelSerializer):
 
     class Meta:
         model = Show
-        fields = ["id", "title", "card_image", "event_dates"]
+        fields = ["id", "title", "card_image", "event_dates", "sold_out"]
 
     def get_event_dates(self, show):
         return [event.time_and_date() for event in show.future_events()]
@@ -38,4 +38,5 @@ class ShowDetailSerializer(ModelSerializer):
             "upcoming_events",
             "last_modified",
             "reservation_open",
+            "sold_out",
         ]

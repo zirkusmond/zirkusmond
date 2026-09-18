@@ -18,4 +18,5 @@ class EventSerializer(ModelSerializer):
             "admission_time",
             "reservation_capacity",
             "reservation_open",
+            "sold_out",
         ]

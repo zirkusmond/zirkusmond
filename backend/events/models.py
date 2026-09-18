@@ -54,11 +54,14 @@ class Event(models.Model):
     def reservation_open(self) -> bool:
         if not self.open_for_reservation:
             return False
-        if self.reservation_count() > self.reservation_capacity:
-            return False
         if timezone.now() > self.begin:
             return False
         return True
+
+    def sold_out(self) -> bool:
+        if self.reservation_count() > self.reservation_capacity:
+            return True
+        return False
 
     @admin.display
     def reservation_count(self) -> int:

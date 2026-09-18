@@ -34,15 +34,18 @@ const RouteComponent = () => {
             key={event.id}
             date={event.timeAndDate}
             admissionTime={event.admissionTime}
+            soldOut={event.soldOut}
           />
         ))}
       </div>
 
       <div className="my-8 flex justify-center">
-        {show.reservationOpen ? (
+        {show.soldOut ? (
+          <h4 className="text-center">{t("show_sold_out")}</h4>
+        ) : show.reservationOpen ? (
           <ReserveButton show={show} />
         ) : (
-          <h4>{t("show_reservations_not_open")}</h4>
+          <h4 className="text-center">{t("show_reservations_not_open")}</h4>
         )}
       </div>
 
@@ -50,7 +53,7 @@ const RouteComponent = () => {
 
       <ShowDetails show={show} />
       <NavigationButtonWrapper>
-        {show.reservationOpen && <ReserveButton show={show} />}
+        {show.reservationOpen && !show.soldOut && <ReserveButton show={show} />}
         <Button variant={"secondary"} asChild>
           <Link to="/">
             <Home />

@@ -36,6 +36,7 @@ export default function EventsSection({
               eventTitle={show.title}
               eventDates={show.eventDates}
               eventImageUrl={show.cardImage}
+              soldOut={show.soldOut}
             />
           </Link>
         ))}

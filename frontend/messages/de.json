@@ -113,6 +113,7 @@
   "show_reserve": "Zur Reservierung",
   "show_buy_tickets": "Tickets kaufen",
   "show_reservations_not_open": "Reservierungen sind noch nicht geöffnet!",
+  "show_sold_out": "Ausverkauft! Eine begrenzte Anzahl an Tickets wird noch an der Abendkasse verkauft.",
 
   "not_found_title": "{entity} nicht gefunden",
   "not_found_message": "Diese {entity} existiert nicht oder ist nicht mehr verfügbar.",
