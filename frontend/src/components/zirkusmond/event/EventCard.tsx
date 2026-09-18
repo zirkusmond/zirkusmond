@@ -50,7 +50,7 @@ const EventCard = ({
         <img
           src={eventImageUrl}
           alt="Event cover"
-          className="relative z-20 aspect-square w-full"
+          className={`relative z-20 aspect-square w-full ${soldOut ? "opacity-50" : ""}`}
         />
         {soldOut && (
           <img
