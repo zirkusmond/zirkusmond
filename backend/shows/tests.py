@@ -127,6 +127,88 @@ class ShowModelTest(TestCase):
     def test_lastmod_format(self) -> None:
         self.assertRegex(self.show.lastmod(), r"\d{4}-\d{2}-\d{2}")
 
+    def test_sold_out_true_with_no_events(self) -> None:
+        # Show with no events is considered sold out (no tickets available)
+        self.assertTrue(self.show.sold_out())
+
+    def test_sold_out_false_when_events_not_sold_out(self) -> None:
+        from reservations.models import Payment, Reservation
+
+        event = make_event(self.show)
+        self.assertFalse(self.show.sold_out())
+
+    def test_sold_out_true_when_all_future_events_sold_out(self) -> None:
+        from reservations.models import Payment, Reservation
+
+        # Create two future events, both at capacity
+        event1 = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() + timedelta(days=5),
+            begin=timezone.now() + timedelta(days=5, hours=1),
+            reservation_capacity=1,
+            open_for_reservation=True,
+        )
+        event2 = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() + timedelta(days=10),
+            begin=timezone.now() + timedelta(days=10, hours=1),
+            reservation_capacity=1,
+            open_for_reservation=True,
+        )
+
+        # Fill both events over capacity
+        for event in [event1, event2]:
+            res1 = Reservation.objects.create(
+                event=event, first_name="A", last_name="B", email=f"a{event.id}@example.com"
+            )
+            Payment.objects.create(
+                reservation=res1, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+            )
+            res2 = Reservation.objects.create(
+                event=event, first_name="C", last_name="D", email=f"c{event.id}@example.com"
+            )
+            Payment.objects.create(
+                reservation=res2, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+            )
+
+        self.assertTrue(self.show.sold_out())
+
+    def test_sold_out_false_when_some_events_not_sold_out(self) -> None:
+        from reservations.models import Payment, Reservation
+
+        # Create two events: one sold out, one not
+        sold_out_event = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() + timedelta(days=5),
+            begin=timezone.now() + timedelta(days=5, hours=1),
+            reservation_capacity=1,
+            open_for_reservation=True,
+        )
+        available_event = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() + timedelta(days=10),
+            begin=timezone.now() + timedelta(days=10, hours=1),
+            reservation_capacity=10,
+            open_for_reservation=True,
+        )
+
+        # Fill the first event over capacity
+        res1 = Reservation.objects.create(
+            event=sold_out_event, first_name="A", last_name="B", email="a@example.com"
+        )
+        Payment.objects.create(
+            reservation=res1, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+        )
+        res2 = Reservation.objects.create(
+            event=sold_out_event, first_name="C", last_name="D", email="c@example.com"
+        )
+        Payment.objects.create(
+            reservation=res2, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+        )
+
+        # Show should not be sold out if one event has availability
+        self.assertFalse(self.show.sold_out())
+
 
 # ---------------------------------------------------------------------------
 # Show managers

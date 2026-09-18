@@ -133,11 +133,33 @@ class EventModelTest(TestCase):
         closed = make_event(self.show, open_for_reservation=False)
         self.assertFalse(closed.reservation_open())
 
-    def test_reservation_closed_when_over_capacity(self) -> None:
+    def test_reservation_open_when_over_capacity(self) -> None:
         event = make_event(self.show, capacity=1)
         make_payment(make_reservation(event))
         make_payment(make_reservation(event, email="other@example.com"))
-        self.assertFalse(event.reservation_open())
+        # reservation_open checks if event is open, not if sold out
+        self.assertTrue(event.reservation_open())
+        self.assertTrue(event.sold_out())
+
+    def test_sold_out_false_when_under_capacity(self) -> None:
+        event = make_event(self.show, capacity=10)
+        make_payment(make_reservation(event))
+        self.assertFalse(event.sold_out())
+
+    def test_sold_out_false_at_capacity(self) -> None:
+        event = make_event(self.show, capacity=1)
+        make_payment(make_reservation(event))
+        self.assertFalse(event.sold_out())
+
+    def test_sold_out_true_when_over_capacity(self) -> None:
+        event = make_event(self.show, capacity=1)
+        make_payment(make_reservation(event))
+        make_payment(make_reservation(event, email="other@example.com"))
+        self.assertTrue(event.sold_out())
+
+    def test_sold_out_false_when_no_reservations(self) -> None:
+        event = make_event(self.show, capacity=10)
+        self.assertFalse(event.sold_out())
 
     def test_reservation_count_empty(self) -> None:
         self.assertEqual(self.event.reservation_count(), 0)
@@ -300,12 +322,13 @@ class ReservationFormTest(TestCase):
         form = ReservationForm(self.show)
         self.assertNotIn(event, form.fields["event"].queryset)
 
-    def test_over_capacity_event_excluded(self) -> None:
+    def test_sold_out_event_included(self) -> None:
         event = self._make_event(self.future, capacity=1)
         for r in [make_reservation(event), make_reservation(event, email="other@example.com")]:
             make_payment(r)
         form = ReservationForm(self.show)
-        self.assertNotIn(event, form.fields["event"].queryset)
+        # Sold out events are still included (frontend filters them)
+        self.assertIn(event, form.fields["event"].queryset)
 
     def test_open_and_closed_events_filtered_correctly(self) -> None:
         open_event = self._make_event(self.future)
