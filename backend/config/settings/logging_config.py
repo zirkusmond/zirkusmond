@@ -22,10 +22,8 @@ formatters_config = {
 if LOG_DIR:
     handlers_list.append("file")
     handlers_config["file"] = {
-        "class": "logging.handlers.RotatingFileHandler",
+        "class": "logging.handlers.WatchedFileHandler",
         "filename": os.path.join(LOG_DIR, "django.log"),
-        "maxBytes": 100 * 1024 * 1024,  # 100MB
-        "backupCount": 10,
         "formatter": "file",
     }
     formatters_config["file"] = {

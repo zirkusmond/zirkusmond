@@ -1,9 +1,14 @@
 /var/lib/docker/volumes/ubuntu_zm_logs/_data/*.log {
     daily
+    maxsize 100M
     rotate 90
     compress
     delaycompress
     missingok
     notifempty
-    create 0644 root root
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        docker exec zirkusmond-zm-1 pkill -USR1 -f gunicorn 2>/dev/null || true
+    endscript
 }
