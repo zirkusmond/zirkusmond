@@ -18,6 +18,9 @@ PAYMENT_USES_SSL = False
 # Disable Sentry in tests
 os.environ["SENTRY_DSN_BACKEND"] = ""
 
+# Use console email backend in tests (don't send real emails)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 # Celery - eager mode for tests (tasks run synchronously)
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
