@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Create log directory if LOG_DIR is set
+if [ -n "$LOG_DIR" ]; then
+    mkdir -p "$LOG_DIR"
+    chown www-data:www-data "$LOG_DIR"
+fi
+
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] ; then
     (python /usr/src/backend/manage.py createsuperuser --no-input)
 fi
