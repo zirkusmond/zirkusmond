@@ -65,6 +65,7 @@ jobs:
           echo "SENTRY_ORG=zirkusmond" >> .env
           echo "SENTRY_PROJECT=python-django" >> .env
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
+          echo "LOG_DIR=/var/log/zirkusmond" >> .env
 
           # Frontend .env
           echo "VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_LIVE_PUBLISHABLE_KEY }}" >> .env
