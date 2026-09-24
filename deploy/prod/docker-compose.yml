@@ -26,6 +26,7 @@ services:
     restart: unless-stopped
     volumes:
       - zm_media:/srv/data
+      - zm_logs:/var/log/zirkusmond
     depends_on:
       - postgres
       - redis
@@ -69,3 +70,6 @@ volumes:
   zm_redis:
     external: true
     name: ubuntu_zm_redis
+  zm_logs:
+    external: true
+    name: ubuntu_zm_logs

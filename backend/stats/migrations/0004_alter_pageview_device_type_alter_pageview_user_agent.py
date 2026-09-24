@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stats', '0003_initial'),
+        ("stats", "0003_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pageview',
-            name='device_type',
-            field=models.CharField(choices=[('mobile', 'Mobile'), ('tablet', 'Tablet'), ('desktop', 'Desktop'), ('bot', 'Bot')], max_length=10),
+            model_name="pageview",
+            name="device_type",
+            field=models.CharField(
+                choices=[
+                    ("mobile", "Mobile"),
+                    ("tablet", "Tablet"),
+                    ("desktop", "Desktop"),
+                    ("bot", "Bot"),
+                ],
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='pageview',
-            name='user_agent',
+            model_name="pageview",
+            name="user_agent",
             field=models.CharField(blank=True, max_length=500),
         ),
     ]
