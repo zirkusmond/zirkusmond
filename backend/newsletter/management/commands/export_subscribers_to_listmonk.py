@@ -26,16 +26,12 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No subscribers found in database"))
             return
 
-        self.stdout.write(
-            self.style.SUCCESS(f"Found {len(emails)} subscribers in database")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Found {len(emails)} subscribers in database"))
 
         # Bulk import to Listmonk
         try:
             result = bulk_import_subscribers(emails)
-            self.stdout.write(
-                self.style.SUCCESS("Successfully started bulk import to Listmonk")
-            )
+            self.stdout.write(self.style.SUCCESS("Successfully started bulk import to Listmonk"))
             self.stdout.write(f"Response: {result}")
         except Exception as e:
             self.stdout.write(
