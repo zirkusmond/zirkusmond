@@ -74,13 +74,9 @@ class Command(BaseCommand):
                     f"\nCompleted! Total subscribers in Mailchimp: {response['total_items']}"
                 )
             )
+            self.stdout.write(self.style.SUCCESS(f"Newly imported to Django DB: {total_imported}"))
             self.stdout.write(
-                self.style.SUCCESS(f"Newly imported to Django DB: {total_imported}")
-            )
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Total in Django DB: {NewsletterRegistration.objects.count()}"
-                )
+                self.style.SUCCESS(f"Total in Django DB: {NewsletterRegistration.objects.count()}")
             )
 
         except ApiClientError as e:
