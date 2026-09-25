@@ -39,6 +39,8 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    volumes:
+      - zm_logs:/var/log/zirkusmond
     depends_on:
       - postgres
       - redis
@@ -51,6 +53,8 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    volumes:
+      - zm_logs:/var/log/zirkusmond
     depends_on:
       - postgres
       - redis
