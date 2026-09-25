@@ -108,6 +108,11 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "reservation@zirkusmond.de")
 
+# MAILCHIMP - SOON DEPRECATED
+MAILCHIMP_API_KEY = os.environ.get("MAILCHIMP_API_KEY", "")
+MAILCHIMP_SERVER_PREFIX = os.environ.get("MAILCHIMP_SERVER_PREFIX", "")
+MAILCHIMP_AUDIENCE_ID = os.environ.get("MAILCHIMP_AUDIENCE_ID", "")
+
 # Listmonk
 LISTMONK_URL = os.environ.get("LISTMONK_URL", "")
 LISTMONK_API_USERNAME = os.environ.get("LISTMONK_API_USERNAME", "")
