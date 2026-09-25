@@ -52,10 +52,10 @@ jobs:
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
           echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_LIVE_SECRET_KEY }}" >> .env
           echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
-          echo "LISTMONK_URL=${{ secrets.LISTMONK_URL }}" >> .env
+          echo "LISTMONK_URL=http://prod_listmonk:9000" >> .env
           echo "LISTMONK_API_USERNAME=${{ secrets.LISTMONK_API_USERNAME }}" >> .env
           echo "LISTMONK_API_PASSWORD=${{ secrets.LISTMONK_API_PASSWORD }}" >> .env
-          echo "LISTMONK_LIST_ID=${{ secrets.LISTMONK_LIST_ID }}" >> .env
+          echo "LISTMONK_LIST_ID=1" >> .env
           echo "DB_HOST=prod_postgres" >> .env
           echo "DJANGO_SETTINGS_MODULE=config.settings.production" >> .env
           echo "API_URL=http://localhost:8010" >> .env
