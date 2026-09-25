@@ -51,10 +51,10 @@ jobs:
           echo "PAYPAL_SANDBOX_SECRET=${{ secrets.PAYPAL_SANDBOX_SECRET }}" >> .env
           echo "STRIPE_TEST_SECRET_KEY=${{ secrets.STRIPE_TEST_SECRET_KEY }}" >> .env
           echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_TEST_WEBHOOK_SECRET }}" >> .env
-          echo "LISTMONK_URL=${{ secrets.LISTMONK_URL }}" >> .env
+          echo "LISTMONK_URL=http://staging_listmonk:9000"" >> .env
           echo "LISTMONK_API_USERNAME=${{ secrets.LISTMONK_API_USERNAME }}" >> .env
           echo "LISTMONK_API_PASSWORD=${{ secrets.LISTMONK_API_PASSWORD }}" >> .env
-          echo "LISTMONK_LIST_ID=${{ secrets.LISTMONK_LIST_ID }}" >> .env
+          echo "LISTMONK_LIST_ID=3" >> .env
           echo "DB_HOST=staging_postgres" >> .env
           echo "DJANGO_SETTINGS_MODULE=config.settings.staging" >> .env
           echo "API_URL=http://localhost:8010" >> .env
