@@ -59,9 +59,7 @@ class Event(models.Model):
         return True
 
     def sold_out(self) -> bool:
-        if self.reservation_count() > self.reservation_capacity:
-            return True
-        return False
+        return self.reservation_count() > self.reservation_capacity
 
     @admin.display
     def reservation_count(self) -> int:

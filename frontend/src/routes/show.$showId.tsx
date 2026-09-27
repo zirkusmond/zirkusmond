@@ -18,6 +18,7 @@ const RouteComponent = () => {
   const { showId } = Route.useParams();
   // TanStack Query: same key as the loader, so this reads from the cache the
   // loader filled instead of fetching again.
+
   const { data: show } = useSuspenseQuery(showQueryOptions(showId));
   return (
     <PageContainer className="px-0 md:px-4">

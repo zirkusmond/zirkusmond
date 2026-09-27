@@ -115,6 +115,30 @@ class ShowModelTest(TestCase):
         make_event(self.show, offset_days=-2)
         self.assertFalse(self.show.show_in_preview())
 
+    def test_events_in_preview_includes_future_event(self) -> None:
+        event = make_event(self.show, offset_days=5)
+        self.assertIn(event, self.show.events_in_preview())
+
+    def test_events_in_preview_includes_event_within_grace_period(self) -> None:
+        recent = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() - timedelta(hours=2),
+            begin=timezone.now() - timedelta(hours=1),
+            reservation_capacity=150,
+            open_for_reservation=True,
+        )
+        self.assertIn(recent, self.show.events_in_preview())
+
+    def test_events_in_preview_excludes_event_past_grace_period(self) -> None:
+        old = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() - timedelta(hours=6),
+            begin=timezone.now() - timedelta(hours=5),
+            reservation_capacity=150,
+            open_for_reservation=True,
+        )
+        self.assertNotIn(old, self.show.events_in_preview())
+
     def test_dates_text_joins_future_events(self) -> None:
         make_event(self.show, offset_days=3)
         make_event(self.show, offset_days=10)
@@ -127,9 +151,9 @@ class ShowModelTest(TestCase):
     def test_lastmod_format(self) -> None:
         self.assertRegex(self.show.lastmod(), r"\d{4}-\d{2}-\d{2}")
 
-    def test_sold_out_true_with_no_events(self) -> None:
-        # Show with no events is considered sold out (no tickets available)
-        self.assertTrue(self.show.sold_out())
+    def test_sold_out_false_with_no_events(self) -> None:
+        # Nothing to reserve yet is not the same as sold out
+        self.assertFalse(self.show.sold_out())
 
     def test_sold_out_false_when_events_not_sold_out(self) -> None:
         make_event(self.show)
@@ -205,6 +229,58 @@ class ShowModelTest(TestCase):
         )
 
         # Show should not be sold out if one event has availability
+        self.assertFalse(self.show.sold_out())
+
+    def test_sold_out_true_for_event_sold_out_within_grace_period(self) -> None:
+        from reservations.models import Payment, Reservation
+
+        # Event already began 1h ago (still within the 4h homepage grace period) but was sold out
+        event = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() - timedelta(hours=2),
+            begin=timezone.now() - timedelta(hours=1),
+            reservation_capacity=1,
+            open_for_reservation=True,
+        )
+        res1 = Reservation.objects.create(
+            event=event, first_name="A", last_name="B", email="a@example.com"
+        )
+        Payment.objects.create(
+            reservation=res1, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+        )
+        res2 = Reservation.objects.create(
+            event=event, first_name="C", last_name="D", email="c@example.com"
+        )
+        Payment.objects.create(
+            reservation=res2, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+        )
+
+        self.assertTrue(self.show.sold_out())
+
+    def test_sold_out_false_for_event_past_grace_period_even_if_sold_out(self) -> None:
+        from reservations.models import Payment, Reservation
+
+        # Event began 5h ago (past the 4h homepage grace period): no longer relevant for display
+        event = Event.objects.create(
+            show=self.show,
+            admission=timezone.now() - timedelta(hours=6),
+            begin=timezone.now() - timedelta(hours=5),
+            reservation_capacity=1,
+            open_for_reservation=True,
+        )
+        res1 = Reservation.objects.create(
+            event=event, first_name="A", last_name="B", email="a@example.com"
+        )
+        Payment.objects.create(
+            reservation=res1, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+        )
+        res2 = Reservation.objects.create(
+            event=event, first_name="C", last_name="D", email="c@example.com"
+        )
+        Payment.objects.create(
+            reservation=res2, total=15, custom_ticket_price=15, status=Payment.Status.COMPLETED
+        )
+
         self.assertFalse(self.show.sold_out())
 
 

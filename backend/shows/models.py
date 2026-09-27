@@ -51,8 +51,17 @@ class Show(models.Model):
         help_text="Maximum price for sliding scale. Defaults to base_ticket_price + 10 EUR if not set",
     )
 
+    PREVIEW_GRACE_PERIOD = timedelta(hours=4)
+
     def future_events(self) -> list["Event"]:
         return [e for e in self.events.all() if e.begin > timezone.now()]
+
+    def events_in_preview(self) -> list["Event"]:
+        """Events that are still relevant to show on the homepage: not yet begun, or begun
+        within the last PREVIEW_GRACE_PERIOD (mirrors show_in_preview())."""
+        return [
+            e for e in self.events.all() if e.begin + self.PREVIEW_GRACE_PERIOD > timezone.now()
+        ]
 
     def last_event(self) -> "Event | None":
         return self.events.order_by("begin").last()
@@ -100,7 +109,7 @@ class Show(models.Model):
         if not len(events):
             return True
         last_event = max(events, key=lambda e: e.admission)
-        return last_event.begin + timedelta(hours=4) > timezone.now()
+        return last_event.begin + self.PREVIEW_GRACE_PERIOD > timezone.now()
 
     def clean(self) -> None:
         from django.core.exceptions import ValidationError
@@ -131,7 +140,10 @@ class Show(models.Model):
         return 15
 
     def sold_out(self) -> bool:
-        return all(event.sold_out() for event in self.future_events())
+        events = self.events_in_preview()
+        if not events:
+            return False
+        return all(event.sold_out() for event in events)
 
     class Meta:
         verbose_name_plural = "all shows"
