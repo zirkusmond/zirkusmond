@@ -102,9 +102,10 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET") or os.environ.ge
     "STRIPE_TEST_WEBHOOK_SECRET", ""
 )
 
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 ANYMAIL = {
-    "BREVO_API_KEY": os.environ.get("BREVO_API_KEY", ""),
+    "BREVO_API_KEY": BREVO_API_KEY,
 }
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "reservation@zirkusmond.de")
 
@@ -113,11 +114,8 @@ MAILCHIMP_API_KEY = os.environ.get("MAILCHIMP_API_KEY", "")
 MAILCHIMP_SERVER_PREFIX = os.environ.get("MAILCHIMP_SERVER_PREFIX", "")
 MAILCHIMP_AUDIENCE_ID = os.environ.get("MAILCHIMP_AUDIENCE_ID", "")
 
-# Listmonk
-LISTMONK_URL = os.environ.get("LISTMONK_URL", "")
-LISTMONK_API_USERNAME = os.environ.get("LISTMONK_API_USERNAME", "")
-LISTMONK_API_PASSWORD = os.environ.get("LISTMONK_API_PASSWORD", "")
-LISTMONK_LIST_ID = int(os.environ.get("LISTMONK_LIST_ID", "1"))
+# Brevo contact list that newsletter signups are added to
+BREVO_NEWSLETTER_LIST_ID = os.environ.get("BREVO_NEWSLETTER_LIST_ID", "1")
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

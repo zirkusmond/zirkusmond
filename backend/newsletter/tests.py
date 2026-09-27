@@ -8,85 +8,85 @@ from newsletter.services import register_newsletter_email
 
 
 class RegisterNewsletterEmailTest(TestCase):
-    """Tests for the combined DB + Listmonk service function."""
+    """Tests for the combined DB + Brevo service function."""
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
     def test_creates_database_registration(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
+        mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("test@example.com")
         self.assertEqual(NewsletterRegistration.objects.count(), 1)
         self.assertEqual(NewsletterRegistration.objects.first().email, "test@example.com")
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
-    def test_calls_listmonk_subscription(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+    def test_calls_brevo_subscription(
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
+        mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("test@example.com")
-        mock_listmonk.assert_called_once_with("test@example.com")
+        mock_brevo.assert_called_once_with("test@example.com")
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
     def test_normalizes_email_before_saving(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
+        mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("  Test@EXAMPLE.COM  ")
         saved = NewsletterRegistration.objects.first()
         self.assertEqual(saved.email, "test@example.com")
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
-    def test_passes_normalized_email_to_listmonk(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+    def test_passes_normalized_email_to_brevo(
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
+        mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("  Test@EXAMPLE.COM  ")
-        mock_listmonk.assert_called_once_with("test@example.com")
+        mock_brevo.assert_called_once_with("test@example.com")
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
     def test_multiple_calls_create_multiple_records(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
+        mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("a@example.com")
         register_newsletter_email("b@example.com")
         self.assertEqual(NewsletterRegistration.objects.count(), 2)
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
     def test_idempotent_for_duplicate_email(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
+        mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("test@example.com")
         register_newsletter_email("test@example.com")
         self.assertEqual(NewsletterRegistration.objects.count(), 1)
-        # Listmonk is called both times (it's idempotent on their end)
-        self.assertEqual(mock_listmonk.call_count, 2)
+        # Brevo is called both times (it's idempotent on their end)
+        self.assertEqual(mock_brevo.call_count, 2)
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
-    def test_succeeds_even_if_listmonk_is_not_configured(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+    def test_succeeds_even_if_brevo_is_not_configured(
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = ""  # Not configured
+        mock_settings.BREVO_API_KEY = ""  # Not configured
         register_newsletter_email("test@example.com")
         self.assertEqual(NewsletterRegistration.objects.count(), 1)
-        mock_listmonk.assert_not_called()
+        mock_brevo.assert_not_called()
 
-    @patch("newsletter.services.subscribe_to_listmonk")
+    @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
-    def test_succeeds_even_if_listmonk_call_fails(
-        self, mock_settings: MagicMock, mock_listmonk: MagicMock
+    def test_succeeds_even_if_brevo_call_fails(
+        self, mock_settings: MagicMock, mock_brevo: MagicMock
     ) -> None:
-        mock_settings.LISTMONK_URL = "http://listmonk:9000"
-        mock_listmonk.side_effect = Exception("Connection error")
+        mock_settings.BREVO_API_KEY = "test-api-key"
+        mock_brevo.side_effect = Exception("Connection error")
         register_newsletter_email("test@example.com")
         # Should still create the DB record
         self.assertEqual(NewsletterRegistration.objects.count(), 1)

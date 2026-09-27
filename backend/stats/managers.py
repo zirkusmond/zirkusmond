@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 from django.db import models
 
+if TYPE_CHECKING:
+    pass
 
-class PageViewManager(models.Manager):
+
+class PageViewManager(models.Manager["PageView"]):
     def bounce_rate(self, since=None):
         qs = self.get_queryset()
         if since:

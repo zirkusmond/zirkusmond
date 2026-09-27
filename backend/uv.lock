@@ -1444,21 +1444,6 @@ wheels = [
 ]
 
 [[package]]
-name = "mailchimp-marketing"
-version = "3.0.80"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "certifi" },
-    { name = "python-dateutil" },
-    { name = "requests" },
-    { name = "six" },
-    { name = "urllib3" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/a0/bf3a0d0c237eee255a02ee9a75fc60cabff2ec8264c4f715c4e647ba2466/mailchimp_marketing-3.0.80-py3-none-any.whl", hash = "sha256:a5bcb3ebd3be60908c65af765f8195724e6fd2d61ecf6da667a794c5bc7b84d3", size = 109565, upload-time = "2022-11-02T19:20:25.306Z" },
-]
-
-[[package]]
 name = "markupsafe"
 version = "3.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2640,12 +2625,12 @@ dependencies = [
     { name = "gunicorn" },
     { name = "imaplib2" },
     { name = "jupyter-nbextensions-configurator" },
-    { name = "mailchimp-marketing" },
     { name = "pillow" },
     { name = "psycopg2-binary" },
     { name = "qrcode", extra = ["pil"] },
     { name = "redis" },
     { name = "reportlab" },
+    { name = "requests" },
     { name = "sentry-sdk" },
     { name = "stripe" },
     { name = "xlsxwriter" },
@@ -2676,12 +2661,12 @@ requires-dist = [
     { name = "gunicorn", specifier = "==26.0.0" },
     { name = "imaplib2", specifier = "==3.6" },
     { name = "jupyter-nbextensions-configurator", specifier = "==0.6.4" },
-    { name = "mailchimp-marketing", specifier = ">=3.0.80" },
     { name = "pillow", specifier = ">=12.2.0" },
     { name = "psycopg2-binary", specifier = "==2.9.12" },
     { name = "qrcode", extras = ["pil"], specifier = "==8.2" },
     { name = "redis", specifier = ">=5.0.0" },
     { name = "reportlab", specifier = "==4.5.1" },
+    { name = "requests", specifier = ">=2.32.0" },
     { name = "sentry-sdk", specifier = ">=2.69.0" },
     { name = "stripe", specifier = "==14.4.1" },
     { name = "xlsxwriter", specifier = "==3.2.9" },
