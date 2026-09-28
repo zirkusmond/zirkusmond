@@ -50,7 +50,7 @@ jobs:
           echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
-          echo "BREVO_NEWSLETTER_LIST_ID=1" >> .env
+          echo "BREVO_NEWSLETTER_LIST_ID=2" >> .env
           echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_LIVE_SECRET_KEY }}" >> .env
           echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
           echo "DB_HOST=prod_postgres" >> .env
