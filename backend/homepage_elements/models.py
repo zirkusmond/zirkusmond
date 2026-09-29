@@ -43,3 +43,21 @@ class PreShowsElement(HomePageElement):
 
 class PostShowsElement(HomePageElement):
     """A section content element displayed after the shows element, before the footer."""
+
+
+class HeroImageElement(models.Model):
+    """Custom hero image for the homepage. When active, replaces the default hero image."""
+
+    image = models.ImageField(upload_to="hero_images/")
+    active = models.BooleanField(default=False)
+
+    objects: models.Manager["HeroImageElement"] = models.Manager()
+
+    def __str__(self) -> str:
+        return f"Hero Image ({self.image.name})"
+
+    def save(self, *args, **kwargs):
+        # Only one hero image may be active at a time
+        if self.active:
+            type(self).objects.exclude(pk=self.pk).filter(active=True).update(active=False)
+        super().save(*args, **kwargs)

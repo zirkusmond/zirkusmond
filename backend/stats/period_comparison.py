@@ -4,6 +4,7 @@ from django.db.models import Count, Sum
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from newsletter.models import NewsletterRegistration
 from reservations.payments.models import Payment
 
 from .models import PageView
@@ -64,6 +65,11 @@ def get_previous_period_metrics(previous_since, previous_until):
         prev_completed_payments.values("total").aggregate(revenue=Sum("total"))["revenue"] or 0
     )
 
+    prev_newsletter_registrations = NewsletterRegistration.objects.filter(
+        created_at__gte=previous_since,
+        created_at__lt=previous_until,
+    )
+
     return {
         "visitors": prev_human_views.values("session_key").distinct().count(),
         "payments": prev_completed_payments.count(),
@@ -72,6 +78,7 @@ def get_previous_period_metrics(previous_since, previous_until):
         "page_views": prev_human_views.count(),
         "bot_views": prev_page_views.filter(device_type=PageView.DeviceChoices.BOT).count(),
         "bounce_rate": PageView.objects.bounce_rate(since=previous_since),
+        "newsletter_subscriptions": prev_newsletter_registrations.count(),
     }
 
 

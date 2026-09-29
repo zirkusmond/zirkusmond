@@ -8,9 +8,16 @@ export interface ShowCard {
   soldOut: boolean;
 }
 
+export interface HeroImage {
+  id: number;
+  image: string;
+  active: boolean;
+}
+
 export interface HomepageResponse {
   upcomingShows: ShowCard[];
   additionalElements: HomepageElement[];
+  heroImage: HeroImage | null;
 }
 
 export interface ShowEvent {

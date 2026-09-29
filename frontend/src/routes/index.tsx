@@ -27,7 +27,7 @@ const App = () => {
 
   return (
     <>
-      <Hero />
+      <Hero heroImage={data.heroImage} />
       <PageContainer className="pt-0">
         {preShowSection && <InlineSection element={preShowSection} />}
         <EventsSection shows={data.upcomingShows} showAllEventsLink />

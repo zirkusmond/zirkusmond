@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from homepage_elements.services import get_active_homepage_elements
+from homepage_elements.services import get_active_hero_image, get_active_homepage_elements
 from shows.models import Show
 from shows.serializers import ShowCardSerializer
 
@@ -35,6 +35,7 @@ def homepage(request: Request) -> Response:
         {
             "upcoming_shows": ShowCardSerializer(shows, many=True).data,
             "additional_elements": get_active_homepage_elements(),
+            "hero_image": get_active_hero_image(),
         }
     )
 
