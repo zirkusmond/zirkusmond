@@ -6,15 +6,23 @@ interface HeroProps {
 }
 
 export default function Hero({ heroImage }: HeroProps) {
-  const backgroundImage = heroImage
+  const desktopImage = heroImage
     ? `url(${heroImage.image})`
     : "url(/images/general/zm_banner.webp)";
+
+  const mobileImage = heroImage?.mobileImage
+    ? `url(${heroImage.mobileImage})`
+    : desktopImage;
 
   return (
     <div>
       <div
-        className="h-[80vh] w-full bg-cover bg-center max-md:h-[50vh] max-[500px]:h-[40vh]"
-        style={{ backgroundImage }}
+        className="h-[80vh] w-full bg-cover bg-center max-md:hidden"
+        style={{ backgroundImage: desktopImage }}
+      />
+      <div
+        className="hidden h-[50vh] w-full bg-cover bg-center max-md:block max-[500px]:h-[40vh]"
+        style={{ backgroundImage: mobileImage }}
       />
       <SectionDivider type="flower" />
     </div>

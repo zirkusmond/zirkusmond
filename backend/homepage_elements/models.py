@@ -1,6 +1,8 @@
 from django.db import models
 from tinymce import models as tinymce_models
 
+from config.image_processor import process_image
+
 
 class HomePageElement(models.Model):
     title_de = models.CharField(max_length=100)
@@ -49,12 +51,12 @@ class HeroImageElement(models.Model):
     """Custom hero image for the homepage. When active, replaces the default hero image.
 
     Image requirements:
-    - Minimum width: 1440px
-    - Minimum height: 532px
-    - Recommended aspect ratio: 2.7:1 (landscape)
+    - Desktop image: Minimum width: 1440px, Minimum height: 532px (2.7:1 landscape)
+    - Mobile image: Portrait or 1:1 format recommended
     """
 
     image = models.ImageField(upload_to="hero_images/")
+    mobile_image = models.ImageField(upload_to="hero_images/mobile/", blank=True, null=True)
     active = models.BooleanField(default=False)
 
     objects: models.Manager["HeroImageElement"] = models.Manager()
@@ -83,6 +85,27 @@ class HeroImageElement(models.Model):
                 raise ValidationError(f"Invalid image file: {e}")
 
     def save(self, *args, **kwargs):
+        # Process desktop image
+        if self.image.name and not self.image.name.endswith(".webp"):
+            content = process_image(
+                self.image,
+                max_width=2880,  # 2x for retina displays
+                min_width=self.MIN_WIDTH,
+                crop=False,
+            )
+            self.image.save(f"{self.image.name.rsplit('.', 1)[0]}.webp", content, save=False)
+
+        # Process mobile image
+        if self.mobile_image.name and not self.mobile_image.name.endswith(".webp"):
+            content = process_image(
+                self.mobile_image,
+                max_width=1200,  # Typical mobile width x2 for retina
+                crop=False,
+            )
+            self.mobile_image.save(
+                f"{self.mobile_image.name.rsplit('.', 1)[0]}.webp", content, save=False
+            )
+
         # Only one hero image may be active at a time
         if self.active:
             type(self).objects.exclude(pk=self.pk).filter(active=True).update(active=False)

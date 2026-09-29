@@ -84,9 +84,7 @@ class TeamMemberAPITest(TestCase):
         self.assertEqual(response.json(), {"team_members": []})
 
     def test_get_all_team_members(self):
-        make_team_member(
-            name="Alice", role_de="Entwicklerin", role_en="Developer", order=1
-        )
+        make_team_member(name="Alice", role_de="Entwicklerin", role_en="Developer", order=1)
         make_team_member(name="Bob", role_de="Designer", role_en="Designer", order=2)
 
         response = self.client.get("/team-members/")

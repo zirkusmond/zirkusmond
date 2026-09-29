@@ -11,6 +11,7 @@ export interface ShowCard {
 export interface HeroImage {
   id: number;
   image: string;
+  mobileImage?: string;
   active: boolean;
 }
 

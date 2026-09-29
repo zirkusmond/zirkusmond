@@ -21,7 +21,11 @@ class TeamMember(models.Model):
     def save(self, *args, **kwargs):
         # Only process if a new image file is being uploaded
         # Check if image has a file object attached (not just a string path)
-        if self.image and hasattr(self.image, "_file") and isinstance(self.image._file, UploadedFile):
+        if (
+            self.image
+            and hasattr(self.image, "_file")
+            and isinstance(self.image._file, UploadedFile)
+        ):
             processed = process_image(
                 image_field=self.image,
                 max_width=800,
