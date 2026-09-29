@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="NewsletterRegistration",
+            name="NewsletterSubscription",
             fields=[
                 (
                     "id",

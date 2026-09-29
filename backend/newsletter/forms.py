@@ -1,9 +1,9 @@
 from django.forms import ModelForm
 
-from .models import NewsletterRegistration
+from .models import NewsletterSubscription
 
 
-class NewsletterRegistrationForm(ModelForm):
+class NewsletterSubscriptionForm(ModelForm):
     class Meta:
-        model = NewsletterRegistration
+        model = NewsletterSubscription
         fields = ["email"]

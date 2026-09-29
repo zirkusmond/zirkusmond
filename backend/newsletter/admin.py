@@ -7,16 +7,16 @@ from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
 from unfold.admin import ModelAdmin
 
-from .models import NewsletterRegistration
+from .models import NewsletterSubscription
 
 
-class NewsletterRegistrationAdmin(ModelAdmin):
+class NewsletterSubscriptionAdmin(ModelAdmin):
     list_display = ("email",)
     actions = ["export_adresses"]
 
     @admin.action(description="Export EMail Adresses")
     def export_adresses(
-        self, request: HttpRequest, queryset: QuerySet[NewsletterRegistration]
+        self, request: HttpRequest, queryset: QuerySet[NewsletterSubscription]
     ) -> HttpResponse:
         output = BytesIO()
         workbook = xlsxwriter.Workbook(output)
@@ -38,4 +38,4 @@ class NewsletterRegistrationAdmin(ModelAdmin):
         return response
 
 
-admin.site.register(NewsletterRegistration, NewsletterRegistrationAdmin)
+admin.site.register(NewsletterSubscription, NewsletterSubscriptionAdmin)

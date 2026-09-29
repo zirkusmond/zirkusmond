@@ -4,14 +4,14 @@ from typing import Any
 import requests
 from django.conf import settings
 
-from newsletter.models import NewsletterRegistration
+from newsletter.models import NewsletterSubscription
 
 logger = logging.getLogger(__name__)
 
 
 def register_newsletter_email(email: str) -> None:
     normalized_email = email.strip().lower()
-    NewsletterRegistration.objects.get_or_create(email=normalized_email)
+    NewsletterSubscription.objects.get_or_create(email=normalized_email)
 
     if settings.BREVO_API_KEY:
         try:

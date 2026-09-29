@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from newsletter.models import NewsletterRegistration
+from newsletter.models import NewsletterSubscription
 from newsletter.services import register_newsletter_email
 
 
@@ -17,8 +17,8 @@ class RegisterNewsletterEmailTest(TestCase):
     ) -> None:
         mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("test@example.com")
-        self.assertEqual(NewsletterRegistration.objects.count(), 1)
-        self.assertEqual(NewsletterRegistration.objects.first().email, "test@example.com")
+        self.assertEqual(NewsletterSubscription.objects.count(), 1)
+        self.assertEqual(NewsletterSubscription.objects.first().email, "test@example.com")
 
     @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
@@ -36,7 +36,7 @@ class RegisterNewsletterEmailTest(TestCase):
     ) -> None:
         mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("  Test@EXAMPLE.COM  ")
-        saved = NewsletterRegistration.objects.first()
+        saved = NewsletterSubscription.objects.first()
         self.assertEqual(saved.email, "test@example.com")
 
     @patch("newsletter.services.subscribe_to_brevo")
@@ -56,7 +56,7 @@ class RegisterNewsletterEmailTest(TestCase):
         mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("a@example.com")
         register_newsletter_email("b@example.com")
-        self.assertEqual(NewsletterRegistration.objects.count(), 2)
+        self.assertEqual(NewsletterSubscription.objects.count(), 2)
 
     @patch("newsletter.services.subscribe_to_brevo")
     @patch("newsletter.services.settings")
@@ -66,7 +66,7 @@ class RegisterNewsletterEmailTest(TestCase):
         mock_settings.BREVO_API_KEY = "test-api-key"
         register_newsletter_email("test@example.com")
         register_newsletter_email("test@example.com")
-        self.assertEqual(NewsletterRegistration.objects.count(), 1)
+        self.assertEqual(NewsletterSubscription.objects.count(), 1)
         # Brevo is called both times (it's idempotent on their end)
         self.assertEqual(mock_brevo.call_count, 2)
 
@@ -77,7 +77,7 @@ class RegisterNewsletterEmailTest(TestCase):
     ) -> None:
         mock_settings.BREVO_API_KEY = ""  # Not configured
         register_newsletter_email("test@example.com")
-        self.assertEqual(NewsletterRegistration.objects.count(), 1)
+        self.assertEqual(NewsletterSubscription.objects.count(), 1)
         mock_brevo.assert_not_called()
 
     @patch("newsletter.services.subscribe_to_brevo")
@@ -89,13 +89,13 @@ class RegisterNewsletterEmailTest(TestCase):
         mock_brevo.side_effect = Exception("Connection error")
         register_newsletter_email("test@example.com")
         # Should still create the DB record
-        self.assertEqual(NewsletterRegistration.objects.count(), 1)
+        self.assertEqual(NewsletterSubscription.objects.count(), 1)
 
 
 NEWSLETTER_URL = "/newsletter/register"
 
 
-class NewsletterRegistrationAPITest(TestCase):
+class NewsletterSubscriptionAPITest(TestCase):
     """Tests for the POST /newsletter/register DRF endpoint."""
 
     def setUp(self) -> None:
@@ -116,8 +116,8 @@ class NewsletterRegistrationAPITest(TestCase):
     def test_new_email_creates_database_record(self) -> None:
         self.client.post(NEWSLETTER_URL, {"email": "user@example.com"}, format="json")
         self.assertTrue(
-            NewsletterRegistration.objects.filter(email="user@example.com").exists(),
-            "Expected a NewsletterRegistration record to be created for the submitted email.",
+            NewsletterSubscription.objects.filter(email="user@example.com").exists(),
+            "Expected a NewsletterSubscription record to be created for the submitted email.",
         )
 
     def test_registration_accepted_via_form_encoded_body(self) -> None:
@@ -132,23 +132,23 @@ class NewsletterRegistrationAPITest(TestCase):
     def test_existing_email_returns_201(self) -> None:
         # The endpoint should be idempotent: re-submitting an already-registered
         # email must still return 201 rather than a conflict error.
-        NewsletterRegistration.objects.create(email="existing@example.com")
+        NewsletterSubscription.objects.create(email="existing@example.com")
         response = self.client.post(
             NEWSLETTER_URL, {"email": "existing@example.com"}, format="json"
         )
         self.assertEqual(response.status_code, 201)
 
     def test_existing_email_returns_success_body(self) -> None:
-        NewsletterRegistration.objects.create(email="existing@example.com")
+        NewsletterSubscription.objects.create(email="existing@example.com")
         response = self.client.post(
             NEWSLETTER_URL, {"email": "existing@example.com"}, format="json"
         )
         self.assertEqual(response.data, {"success": True})
 
     def test_existing_email_does_not_create_duplicate_record(self) -> None:
-        NewsletterRegistration.objects.create(email="existing@example.com")
+        NewsletterSubscription.objects.create(email="existing@example.com")
         self.client.post(NEWSLETTER_URL, {"email": "existing@example.com"}, format="json")
-        count = NewsletterRegistration.objects.filter(email="existing@example.com").count()
+        count = NewsletterSubscription.objects.filter(email="existing@example.com").count()
         self.assertEqual(
             count,
             1,
@@ -160,7 +160,7 @@ class NewsletterRegistrationAPITest(TestCase):
         # produce only one database row.
         self.client.post(NEWSLETTER_URL, {"email": "twice@example.com"}, format="json")
         self.client.post(NEWSLETTER_URL, {"email": "twice@example.com"}, format="json")
-        count = NewsletterRegistration.objects.filter(email="twice@example.com").count()
+        count = NewsletterSubscription.objects.filter(email="twice@example.com").count()
         self.assertEqual(count, 1)
 
     # -----------------------------------------------------------------------
@@ -193,14 +193,14 @@ class NewsletterRegistrationAPITest(TestCase):
     def test_missing_email_does_not_create_database_record(self) -> None:
         self.client.post(NEWSLETTER_URL, {}, format="json")
         self.assertEqual(
-            NewsletterRegistration.objects.count(),
+            NewsletterSubscription.objects.count(),
             0,
             "No record should be created when the email field is absent.",
         )
 
     def test_empty_string_email_does_not_create_database_record(self) -> None:
         self.client.post(NEWSLETTER_URL, {"email": ""}, format="json")
-        self.assertEqual(NewsletterRegistration.objects.count(), 0)
+        self.assertEqual(NewsletterSubscription.objects.count(), 0)
 
     # -----------------------------------------------------------------------
     # Email format variations
@@ -246,7 +246,7 @@ class NewsletterRegistrationAPITest(TestCase):
         # distinct addresses each produce their own row.
         self.client.post(NEWSLETTER_URL, {"email": "a@example.com"}, format="json")
         self.client.post(NEWSLETTER_URL, {"email": "b@example.com"}, format="json")
-        self.assertEqual(NewsletterRegistration.objects.count(), 2)
+        self.assertEqual(NewsletterSubscription.objects.count(), 2)
 
     # -----------------------------------------------------------------------
     # Disallowed HTTP methods

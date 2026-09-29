@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from mailchimp_marketing.api_client import ApiClientError
 
-from newsletter.models import NewsletterRegistration
+from newsletter.models import NewsletterSubscription
 
 
 class Command(BaseCommand):
@@ -54,7 +54,7 @@ class Command(BaseCommand):
 
                 for member in members:
                     email = member["email_address"]
-                    _, created = NewsletterRegistration.objects.get_or_create(
+                    _, created = NewsletterSubscription.objects.get_or_create(
                         email=email.lower().strip()
                     )
                     if created:
@@ -76,7 +76,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS(f"Newly imported to Django DB: {total_imported}"))
             self.stdout.write(
-                self.style.SUCCESS(f"Total in Django DB: {NewsletterRegistration.objects.count()}")
+                self.style.SUCCESS(f"Total in Django DB: {NewsletterSubscription.objects.count()}")
             )
 
         except ApiClientError as e:

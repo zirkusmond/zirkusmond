@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def deduplicate_emails(apps, schema_editor):
-    Model = apps.get_model("newsletter", "NewsletterRegistration")
+    Model = apps.get_model("newsletter", "NewsletterSubscription")
     seen = set()
     for obj in Model.objects.order_by("id"):
         if obj.email in seen:
@@ -15,13 +15,13 @@ def deduplicate_emails(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("newsletter", "0002_alter_newsletterregistration_id"),
+        ("newsletter", "0002_alter_newslettersubscription_id"),
     ]
 
     operations = [
         migrations.RunPython(deduplicate_emails, reverse_code=migrations.RunPython.noop),
         migrations.AlterField(
-            model_name="newsletterregistration",
+            model_name="newslettersubscription",
             name="email",
             field=models.EmailField(max_length=254, unique=True),
         ),
