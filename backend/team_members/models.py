@@ -1,5 +1,7 @@
 from django.db import models
 
+from config.image_processor import process_image
+
 
 class TeamMember(models.Model):
     name = models.CharField(max_length=255)
@@ -14,3 +16,13 @@ class TeamMember(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.image and hasattr(self.image, "file"):
+            processed = process_image(
+                image_field=self.image,
+                max_width=800,
+                quality=75,
+            )
+            self.image.save(f"{self.image.name.split('.')[0]}.webp", processed, save=False)
+        super().save(*args, **kwargs)
