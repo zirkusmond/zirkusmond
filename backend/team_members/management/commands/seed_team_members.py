@@ -71,29 +71,67 @@ class Command(BaseCommand):
 
             if image_source == "img-6.webp":
                 # This image is in the gallery folder
-                # Try media/gallery first (production), then frontend public (development)
+                # Try media/gallery first (production), then frontend .output (built), then frontend public (dev)
                 media_gallery_path = Path(settings.MEDIA_ROOT) / "gallery" / image_source
-                frontend_gallery_path = (
+                frontend_gallery_path = next(
+                    (
+                        p
+                        for p in [
+                            Path(settings.BASE_DIR).parent
+                            / "frontend"
+                            / ".output"
+                            / "public"
+                            / "images"
+                            / "gallery"
+                            / image_source,
+                            Path(settings.BASE_DIR).parent
+                            / "frontend"
+                            / "public"
+                            / "images"
+                            / "gallery"
+                            / image_source,
+                        ]
+                        if p.exists()
+                    ),
                     Path(settings.BASE_DIR).parent
                     / "frontend"
                     / "public"
                     / "images"
                     / "gallery"
-                    / image_source
+                    / image_source,
                 )
                 source_path = (
                     media_gallery_path if media_gallery_path.exists() else frontend_gallery_path
                 )
             else:
-                # Try to find the image in the frontend public directory
-                # This assumes the command is run in development where frontend is accessible
-                frontend_team_path = (
+                # Try to find the image in the frontend directory
+                # Check .output/public (built) first, then public (dev)
+                frontend_team_path = next(
+                    (
+                        p
+                        for p in [
+                            Path(settings.BASE_DIR).parent
+                            / "frontend"
+                            / ".output"
+                            / "public"
+                            / "images"
+                            / "team"
+                            / image_source,
+                            Path(settings.BASE_DIR).parent
+                            / "frontend"
+                            / "public"
+                            / "images"
+                            / "team"
+                            / image_source,
+                        ]
+                        if p.exists()
+                    ),
                     Path(settings.BASE_DIR).parent
                     / "frontend"
                     / "public"
                     / "images"
                     / "team"
-                    / image_source
+                    / image_source,
                 )
                 source_path = frontend_team_path
 
