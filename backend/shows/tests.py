@@ -10,8 +10,8 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from PIL import Image
 
+from config.image_processor import process_image
 from events.models import Event
-from shows.image_processor import process_show_image
 from shows.models import PastShow, Show, UnscheduledShow, UpcomingShow
 
 # ---------------------------------------------------------------------------
@@ -393,42 +393,44 @@ def make_jpeg_upload(width: int, height: int, name: str = "pic.jpg") -> SimpleUp
     )
 
 
-class ProcessShowImageTest(TestCase):
+class TestProcessImage:
+    """Tests for process_image function - no database needed."""
+
     def test_returns_webp(self) -> None:
-        result = process_show_image(make_jpeg_bytes(800, 800), max_width=900)
-        self.assertEqual(Image.open(result).format, "WEBP")
+        result = process_image(make_jpeg_bytes(800, 800), max_width=900, crop=True)
+        assert Image.open(result).format == "WEBP"
 
     def test_crops_wide_image_to_square(self) -> None:
-        result = process_show_image(make_jpeg_bytes(800, 400), max_width=900)
+        result = process_image(make_jpeg_bytes(800, 400), max_width=900, crop=True)
         img = Image.open(result)
-        self.assertEqual(img.width, img.height)
-        self.assertEqual(img.width, 400)
+        assert img.width == img.height
+        assert img.width == 400
 
     def test_crops_tall_image_to_square(self) -> None:
-        result = process_show_image(make_jpeg_bytes(400, 800), max_width=900)
+        result = process_image(make_jpeg_bytes(400, 800), max_width=900, crop=True)
         img = Image.open(result)
-        self.assertEqual(img.width, img.height)
-        self.assertEqual(img.width, 400)
+        assert img.width == img.height
+        assert img.width == 400
 
     def test_resizes_down_to_max_width(self) -> None:
-        result = process_show_image(make_jpeg_bytes(2000, 2000), max_width=900)
+        result = process_image(make_jpeg_bytes(2000, 2000), max_width=900, crop=True)
         img = Image.open(result)
-        self.assertEqual(img.width, 900)
-        self.assertEqual(img.height, 900)
+        assert img.width == 900
+        assert img.height == 900
 
     def test_does_not_upscale_below_max_width(self) -> None:
-        result = process_show_image(make_jpeg_bytes(300, 300), max_width=900)
-        self.assertEqual(Image.open(result).width, 300)
+        result = process_image(make_jpeg_bytes(300, 300), max_width=900, crop=True)
+        assert Image.open(result).width == 300
 
     def test_crop_false_preserves_aspect_ratio(self) -> None:
-        result = process_show_image(make_jpeg_bytes(1600, 900), max_width=1600, crop=False)
+        result = process_image(make_jpeg_bytes(1600, 900), max_width=1600, crop=False)
         img = Image.open(result)
-        self.assertEqual((img.width, img.height), (1600, 900))
+        assert (img.width, img.height) == (1600, 900)
 
     def test_crop_false_still_resizes_down(self) -> None:
-        result = process_show_image(make_jpeg_bytes(2000, 1000), max_width=1600, crop=False)
+        result = process_image(make_jpeg_bytes(2000, 1000), max_width=1600, crop=False)
         img = Image.open(result)
-        self.assertEqual((img.width, img.height), (1600, 800))
+        assert (img.width, img.height) == (1600, 800)
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
