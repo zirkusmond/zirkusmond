@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import PageContainer from "#/components/zirkusmond/general/PageContainer";
 import PageHeader from "#/components/zirkusmond/general/PageHeader";
@@ -8,37 +9,11 @@ import SectionDivider from "#/components/zirkusmond/general/SectionDivider";
 import SectionCard from "#/components/zirkusmond/general/SectionCard";
 import OpenSource from "#/components/zirkusmond/home/OpenSource";
 import { useTranslation } from "react-i18next";
+import { teamMembersQueryOptions } from "#/lib/api";
 
 const About = () => {
   const { t } = useTranslation();
-
-  const team = [
-    {
-      image: "/images/team/MnM.webp",
-      name: "Max & Marlen",
-      role: t("role_zirkus_directors"),
-    },
-    {
-      image: "/images/gallery/img-6.webp",
-      name: "Juan",
-      role: t("role_artistic_director"),
-    },
-    {
-      image: "/images/team/maria.webp",
-      name: "Maria",
-      role: t("role_head_of_productions"),
-    },
-    {
-      image: "/images/team/valerio.webp",
-      name: "Valerio",
-      role: t("role_technician"),
-    },
-    {
-      image: "/images/team/philo_alex.jpg",
-      name: "Philo & Alex",
-      role: t("role_it"),
-    },
-  ];
+  const { data: teamMembers } = useSuspenseQuery(teamMembersQueryOptions());
 
   return (
     <PageContainer>
@@ -63,7 +38,7 @@ const About = () => {
 
       <SectionDivider type="kite" margin="small" className="mb-10" />
       <PageHeader className="mt-12 sm:mt-16">{t("page_about_team")}</PageHeader>
-      <TeamGrid members={team} />
+      <TeamGrid members={teamMembers} />
 
       <SectionDivider type="flower" />
       <OpenSource />
@@ -72,6 +47,12 @@ const About = () => {
 };
 
 export const Route = createFileRoute("/about")({
+  loader: async ({ context: { queryClient } }) => {
+    await queryClient.query({
+      ...teamMembersQueryOptions(),
+      staleTime: "static",
+    });
+  },
   head: () => ({
     meta: [
       { title: "Zirkus Mond – Über uns" },

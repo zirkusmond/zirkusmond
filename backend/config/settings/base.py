@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "newsletter",
     "rentals",
     "homepage_elements",
+    "team_members",
 ]
 
 MIDDLEWARE = [

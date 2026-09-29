@@ -18,7 +18,7 @@ from PIL import Image
 from rest_framework.test import APIClient
 
 from events.models import Event
-from newsletter.models import NewsletterRegistration
+from newsletter.models import NewsletterSubscription
 from reservations.admin import GuestAdmin, ReservationAdmin
 from reservations.models import Guest, Reservation
 from reservations.payments.models import Payment
@@ -245,18 +245,18 @@ class ReserveAPIViewTest(TestCase):
     def test_newsletter_flag_true_registers_email(self) -> None:
         self.client.post(self._url(), self._post_data(newsletter=True), format="json")
         self.assertTrue(
-            NewsletterRegistration.objects.filter(email="anna@example.com").exists(),
-            "Expected a NewsletterRegistration record for the submitted email.",
+            NewsletterSubscription.objects.filter(email="anna@example.com").exists(),
+            "Expected a NewsletterSubscription record for the submitted email.",
         )
 
     def test_newsletter_flag_false_does_not_register_email(self) -> None:
         self.client.post(self._url(), self._post_data(newsletter=False), format="json")
-        self.assertEqual(NewsletterRegistration.objects.count(), 0)
+        self.assertEqual(NewsletterSubscription.objects.count(), 0)
 
     def test_newsletter_flag_absent_does_not_register_email(self) -> None:
         # newsletter defaults to False; omitting it must not create a record.
         self.client.post(self._url(), self._post_data(), format="json")
-        self.assertEqual(NewsletterRegistration.objects.count(), 0)
+        self.assertEqual(NewsletterSubscription.objects.count(), 0)
 
     # -----------------------------------------------------------------------
     # Serializer validation failures — expected 400

@@ -11,7 +11,7 @@ from .models import NewsletterSubscription
 
 
 class NewsletterSubscriptionAdmin(ModelAdmin):
-    list_display = ("email",)
+    list_display = ("email", "created_at")
     actions = ["export_adresses"]
 
     @admin.action(description="Export EMail Adresses")

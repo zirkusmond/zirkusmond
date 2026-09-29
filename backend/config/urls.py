@@ -16,6 +16,7 @@ urlpatterns = [
     # Apps
     path("", include("shows.urls")),
     path("", include("reservations.urls")),
+    path("", include("team_members.urls")),
     # Sentry dummy route
     # path("sentry-debug/", views.trigger_error),
 ]

@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.test import TestCase
 from django.utils import timezone
 
-from newsletter.models import NewsletterRegistration
+from newsletter.models import NewsletterSubscription
 from reservations.models import Guest
 
 from .kpi_registry import KPI, KPIRegistry
@@ -31,7 +31,6 @@ from .tests import (
     make_reservation,
     make_show,
 )
-
 
 # ---------------------------------------------------------------------------
 # KPIRegistry
@@ -267,8 +266,8 @@ class BounceRateKPITest(TestCase):
 
 class NewsletterSubscriptionsKPITest(TestCase):
     def test_counts_newsletter_subscriptions(self):
-        NewsletterRegistration.objects.create(email="test1@example.com")
-        NewsletterRegistration.objects.create(email="test2@example.com")
+        NewsletterSubscription.objects.create(email="test1@example.com")
+        NewsletterSubscription.objects.create(email="test2@example.com")
 
         kpi = NewsletterSubscriptionsKPI()
         self.assertEqual(kpi.calculate(since=None), 2)
@@ -278,9 +277,9 @@ class NewsletterSubscriptionsKPITest(TestCase):
         old = now - timedelta(days=10)
 
         with frozen_time(old):
-            NewsletterRegistration.objects.create(email="old@example.com")
+            NewsletterSubscription.objects.create(email="old@example.com")
 
-        NewsletterRegistration.objects.create(email="new@example.com")
+        NewsletterSubscription.objects.create(email="new@example.com")
 
         kpi = NewsletterSubscriptionsKPI()
         self.assertEqual(kpi.calculate(since=now - timedelta(days=1)), 1)

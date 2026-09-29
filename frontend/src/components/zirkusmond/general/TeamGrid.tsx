@@ -1,11 +1,7 @@
 import { cn } from "#/lib/utils.ts";
+import { useTranslatedRole } from "#/hooks/useTranslatedText";
+import type { TeamMember } from "#/lib/api.ts";
 import SectionCard from "./SectionCard";
-
-interface TeamMember {
-  image: string;
-  name: string;
-  role: string;
-}
 
 interface TeamGridProps {
   members: TeamMember[];
@@ -28,6 +24,8 @@ interface TeamMemberCardProps {
 }
 
 const TeamMemberCard = ({ member, className }: TeamMemberCardProps) => {
+  const role = useTranslatedRole(member);
+
   return (
     <SectionCard className="p-0! min-w-60">
       <div className={cn("text-center mb-4", className)}>
@@ -37,11 +35,10 @@ const TeamMemberCard = ({ member, className }: TeamMemberCardProps) => {
           alt={`Photo of ${member.name}`}
         />
         <h3>{member.name}</h3>
-        <p>{member.role}</p>
+        <p>{role}</p>
       </div>
     </SectionCard>
   );
 };
 
 export default TeamGrid;
-export type { TeamMember };

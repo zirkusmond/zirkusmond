@@ -114,19 +114,30 @@ UNFOLD = {
                 "separator": True,
                 "items": [
                     {
-                        "title": "Newsletter",
-                        "icon": "mail",
-                        "link": "/mondmin/newsletter/newsletterregistration/",
-                    },
-                    {
                         "title": "Homepage elements",
                         "icon": "code",
                         "link": "/mondmin/homepage_elements/",
                     },
                     {
+                        "title": "Team members",
+                        "icon": "people",
+                        "link": "/mondmin/team_members/teammember",
+                    },
+                    {
                         "title": "Rentals",
                         "icon": "storefront",
                         "link": "/mondmin/rentals/rental/",
+                    },
+                ],
+            },
+            {
+                "title": "Newsletter",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Subscriptions",
+                        "icon": "mail",
+                        "link": "/mondmin/newsletter/newslettersubscription/",
                     },
                 ],
             },
@@ -142,7 +153,7 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Users & Auth",
+                "title": "Admin panel users",
                 "separator": True,
                 "items": [
                     {

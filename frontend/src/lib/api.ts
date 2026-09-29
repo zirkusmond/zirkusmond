@@ -163,3 +163,25 @@ export const reservationDetailQueryOptions = (reservationId: string) =>
     queryFn: () =>
       fetchJson<ReservationDetail>(`/reservation/detail/${reservationId}`),
   });
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  roleDe: string;
+  roleEn: string;
+  image: string;
+  order: number;
+}
+
+export interface TeamMembersResponse {
+  teamMembers: TeamMember[];
+}
+
+export const teamMembersQueryOptions = (opts?: { preload?: boolean }) =>
+  queryOptions({
+    queryKey: ["teamMembers"],
+    queryFn: async () => {
+      const data = await fetchJson<TeamMembersResponse>("/team-members/", opts);
+      return data.teamMembers;
+    },
+  });

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from django.db.models import Count, Sum
 
-from newsletter.models import NewsletterRegistration
+from newsletter.models import NewsletterSubscription
 from reservations.payments.models import Payment
 
 from .kpi_registry import KPI, registry
@@ -107,8 +107,8 @@ class NewsletterSubscriptionsKPI(KPI):
 
     def calculate(self, since: datetime | None):
         if since:
-            return NewsletterRegistration.objects.filter(created_at__gte=since).count()
-        return NewsletterRegistration.objects.count()
+            return NewsletterSubscription.objects.filter(created_at__gte=since).count()
+        return NewsletterSubscription.objects.count()
 
 
 class AvgTimeOnSiteKPI(KPI):
