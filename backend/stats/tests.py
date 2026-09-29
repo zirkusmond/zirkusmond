@@ -20,7 +20,7 @@ from shows.models import Show
 
 from .admin import PageViewAdmin
 from .components import DeviceBreakdownBarChart, VisitorsLineChart
-from .dashboard import _format_duration, dashboard_callback
+from .dashboard import dashboard_callback
 from .models import PageView
 from .period_comparison import _calculate_change
 from .ranges import (
@@ -414,17 +414,6 @@ class RangeBucketLabelsTest(TestCase):
 # ---------------------------------------------------------------------------
 # dashboard.py
 # ---------------------------------------------------------------------------
-
-
-class FormatDurationTest(TestCase):
-    def test_returns_dash_for_none(self) -> None:
-        self.assertEqual(_format_duration(None), "–")
-
-    def test_formats_minutes_and_seconds(self) -> None:
-        self.assertEqual(_format_duration(timedelta(seconds=125)), "2m 5s")
-
-    def test_formats_zero_duration(self) -> None:
-        self.assertEqual(_format_duration(timedelta(seconds=0)), "0m 0s")
 
 
 class CalculateChangeTest(TestCase):
