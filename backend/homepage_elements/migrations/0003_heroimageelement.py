@@ -4,18 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('homepage_elements', '0002_postshowselement_preshowselement'),
+        ("homepage_elements", "0002_postshowselement_preshowselement"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='HeroImageElement',
+            name="HeroImageElement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to='hero_images/')),
-                ('active', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("image", models.ImageField(upload_to="hero_images/")),
+                ("active", models.BooleanField(default=False)),
             ],
         ),
     ]

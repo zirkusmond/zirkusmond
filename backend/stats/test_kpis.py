@@ -23,7 +23,14 @@ from .kpis import (
 )
 from .kpis import registry as global_registry
 from .models import PageView
-from .tests import frozen_time, make_event, make_page_view, make_payment, make_reservation, make_show
+from .tests import (
+    frozen_time,
+    make_event,
+    make_page_view,
+    make_payment,
+    make_reservation,
+    make_show,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -283,7 +290,9 @@ class AvgTimeOnSiteKPITest(TestCase):
     def test_calculates_average_time(self):
         now = timezone.now()
         make_page_view(
-            session_key="a", entered_at=now - timedelta(minutes=5), left_at=now - timedelta(minutes=4)
+            session_key="a",
+            entered_at=now - timedelta(minutes=5),
+            left_at=now - timedelta(minutes=4),
         )
         make_page_view(
             session_key="b",
@@ -388,7 +397,9 @@ class KPIDashboardIntegrationTest(TestCase):
         # Render all KPIs
         now = datetime(2026, 6, 10, 12, 0, tzinfo=UTC)
         with frozen_time(now):
-            kpis = [kpi.render(since=None, previous_metrics=None) for kpi in global_registry.get_all()]
+            kpis = [
+                kpi.render(since=None, previous_metrics=None) for kpi in global_registry.get_all()
+            ]
 
         # Extract by title
         kpi_dict = {kpi["title"]: kpi for kpi in kpis}
@@ -418,7 +429,10 @@ class KPIDashboardIntegrationTest(TestCase):
         }
 
         with frozen_time(now):
-            kpis = [kpi.render(since=None, previous_metrics=prev_metrics) for kpi in global_registry.get_all()]
+            kpis = [
+                kpi.render(since=None, previous_metrics=prev_metrics)
+                for kpi in global_registry.get_all()
+            ]
 
         payments_kpi = next(kpi for kpi in kpis if kpi["title"] == "Payments")
 
