@@ -1,3 +1,4 @@
+from django.core.files.uploadedfile import UploadedFile
 from django.db import models
 
 from config.image_processor import process_image
@@ -18,7 +19,9 @@ class TeamMember(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.image and hasattr(self.image, "file"):
+        # Only process if a new image file is being uploaded
+        # Check if image has a file object attached (not just a string path)
+        if self.image and hasattr(self.image, "_file") and isinstance(self.image._file, UploadedFile):
             processed = process_image(
                 image_field=self.image,
                 max_width=800,
