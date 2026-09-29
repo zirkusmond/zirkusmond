@@ -5,7 +5,6 @@ from django.db import migrations
 
 def create_subscription_table(apps, schema_editor):
     """Create the newslettersubscription table if it doesn't exist."""
-    db_alias = schema_editor.connection.alias
     is_sqlite = schema_editor.connection.vendor == "sqlite"
 
     with schema_editor.connection.cursor() as cursor:
@@ -30,7 +29,6 @@ def create_subscription_table(apps, schema_editor):
 
 def copy_data_to_subscription(apps, schema_editor):
     """Copy data from newsletterregistration to newslettersubscription."""
-    db_alias = schema_editor.connection.alias
     is_sqlite = schema_editor.connection.vendor == "sqlite"
 
     with schema_editor.connection.cursor() as cursor:

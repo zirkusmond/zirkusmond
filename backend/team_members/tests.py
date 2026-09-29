@@ -58,9 +58,9 @@ class TeamMemberModelTest(TestCase):
         self.assertEqual(str(member), "Jane Smith")
 
     def test_ordering(self):
-        member1 = make_team_member(name="Alice", order=2)
-        member2 = make_team_member(name="Bob", order=1)
-        member3 = make_team_member(name="Charlie", order=1)
+        make_team_member(name="Alice", order=2)
+        make_team_member(name="Bob", order=1)
+        make_team_member(name="Charlie", order=1)
 
         members = list(TeamMember.objects.all())
         # Should order by order field first, then by name
@@ -84,10 +84,10 @@ class TeamMemberAPITest(TestCase):
         self.assertEqual(response.json(), {"team_members": []})
 
     def test_get_all_team_members(self):
-        member1 = make_team_member(
+        make_team_member(
             name="Alice", role_de="Entwicklerin", role_en="Developer", order=1
         )
-        member2 = make_team_member(name="Bob", role_de="Designer", role_en="Designer", order=2)
+        make_team_member(name="Bob", role_de="Designer", role_en="Designer", order=2)
 
         response = self.client.get("/team-members/")
         self.assertEqual(response.status_code, 200)
