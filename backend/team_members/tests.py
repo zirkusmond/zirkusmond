@@ -43,7 +43,9 @@ def make_team_member(**kwargs: Any) -> TeamMember:
 
 class TeamMemberModelTest(TestCase):
     def test_create_team_member(self):
-        member = make_team_member(name="John Doe", role_de="Entwickler", role_en="Developer", order=1)
+        member = make_team_member(
+            name="John Doe", role_de="Entwickler", role_en="Developer", order=1
+        )
         self.assertEqual(member.name, "John Doe")
         self.assertEqual(member.role_de, "Entwickler")
         self.assertEqual(member.role_en, "Developer")
@@ -82,7 +84,9 @@ class TeamMemberAPITest(TestCase):
         self.assertEqual(response.json(), {"team_members": []})
 
     def test_get_all_team_members(self):
-        member1 = make_team_member(name="Alice", role_de="Entwicklerin", role_en="Developer", order=1)
+        member1 = make_team_member(
+            name="Alice", role_de="Entwicklerin", role_en="Developer", order=1
+        )
         member2 = make_team_member(name="Bob", role_de="Designer", role_en="Designer", order=2)
 
         response = self.client.get("/team-members/")
@@ -182,7 +186,9 @@ class SeedTeamMembersCommandTest(TestCase):
     def test_seed_command_skips_existing_members(self):
         with override_settings(BASE_DIR=self.test_media_root):
             # Create one member manually
-            make_team_member(name="Max & Marlen", role_de="Custom Role", role_en="Custom Role", order=10)
+            make_team_member(
+                name="Max & Marlen", role_de="Custom Role", role_en="Custom Role", order=10
+            )
 
             call_command("seed_team_members")
 
