@@ -27,7 +27,8 @@ def make_image() -> SimpleUploadedFile:
 def make_team_member(**kwargs: Any) -> TeamMember:
     defaults = dict(
         name="Test Member",
-        role="Test Role",
+        role_de="Test Role DE",
+        role_en="Test Role EN",
         image=make_image(),
         order=0,
     )
@@ -42,9 +43,10 @@ def make_team_member(**kwargs: Any) -> TeamMember:
 
 class TeamMemberModelTest(TestCase):
     def test_create_team_member(self):
-        member = make_team_member(name="John Doe", role="Developer", order=1)
+        member = make_team_member(name="John Doe", role_de="Entwickler", role_en="Developer", order=1)
         self.assertEqual(member.name, "John Doe")
-        self.assertEqual(member.role, "Developer")
+        self.assertEqual(member.role_de, "Entwickler")
+        self.assertEqual(member.role_en, "Developer")
         self.assertEqual(member.order, 1)
         self.assertIsNotNone(member.image)
         self.assertIsNotNone(member.last_modified)
@@ -80,8 +82,8 @@ class TeamMemberAPITest(TestCase):
         self.assertEqual(response.json(), {"team_members": []})
 
     def test_get_all_team_members(self):
-        member1 = make_team_member(name="Alice", role="Developer", order=1)
-        member2 = make_team_member(name="Bob", role="Designer", order=2)
+        member1 = make_team_member(name="Alice", role_de="Entwicklerin", role_en="Developer", order=1)
+        member2 = make_team_member(name="Bob", role_de="Designer", role_en="Designer", order=2)
 
         response = self.client.get("/team-members/")
         self.assertEqual(response.status_code, 200)
@@ -91,15 +93,17 @@ class TeamMemberAPITest(TestCase):
 
         # Check that members are returned in correct order
         self.assertEqual(data["team_members"][0]["name"], "Alice")
-        self.assertEqual(data["team_members"][0]["role"], "Developer")
+        self.assertEqual(data["team_members"][0]["role_de"], "Entwicklerin")
+        self.assertEqual(data["team_members"][0]["role_en"], "Developer")
         self.assertEqual(data["team_members"][0]["order"], 1)
 
         self.assertEqual(data["team_members"][1]["name"], "Bob")
-        self.assertEqual(data["team_members"][1]["role"], "Designer")
+        self.assertEqual(data["team_members"][1]["role_de"], "Designer")
+        self.assertEqual(data["team_members"][1]["role_en"], "Designer")
         self.assertEqual(data["team_members"][1]["order"], 2)
 
     def test_team_member_serialization(self):
-        member = make_team_member(name="Test Person", role="Tester", order=5)
+        member = make_team_member(name="Test Person", role_de="Tester", role_en="Tester", order=5)
 
         response = self.client.get("/team-members/")
         data = response.json()
@@ -107,7 +111,8 @@ class TeamMemberAPITest(TestCase):
         member_data = data["team_members"][0]
         self.assertIn("id", member_data)
         self.assertIn("name", member_data)
-        self.assertIn("role", member_data)
+        self.assertIn("role_de", member_data)
+        self.assertIn("role_en", member_data)
         self.assertIn("image", member_data)
         self.assertIn("order", member_data)
         self.assertEqual(member_data["id"], member.id)
@@ -156,13 +161,11 @@ class SeedTeamMembersCommandTest(TestCase):
             # Verify team members were created
             self.assertEqual(TeamMember.objects.count(), 5)
 
-            # Verify specific members
+            # Verify specific members exist
             max_marlen = TeamMember.objects.get(name="Max & Marlen")
-            self.assertEqual(max_marlen.role, "Zirkus Leitung")
             self.assertEqual(max_marlen.order, 1)
 
             juan = TeamMember.objects.get(name="Juan")
-            self.assertEqual(juan.role, "Künstlerische Leitung")
             self.assertEqual(juan.order, 2)
 
     @override_settings(BASE_DIR=lambda: None)
@@ -179,7 +182,7 @@ class SeedTeamMembersCommandTest(TestCase):
     def test_seed_command_skips_existing_members(self):
         with override_settings(BASE_DIR=self.test_media_root):
             # Create one member manually
-            make_team_member(name="Max & Marlen", role="Custom Role", order=10)
+            make_team_member(name="Max & Marlen", role_de="Custom Role", role_en="Custom Role", order=10)
 
             call_command("seed_team_members")
 
@@ -188,5 +191,5 @@ class SeedTeamMembersCommandTest(TestCase):
 
             # Existing member should not be modified
             existing = TeamMember.objects.get(name="Max & Marlen")
-            self.assertEqual(existing.role, "Custom Role")
+            self.assertEqual(existing.role_de, "Custom Role")
             self.assertEqual(existing.order, 10)

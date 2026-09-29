@@ -119,7 +119,8 @@ class Command(BaseCommand):
             # Create the team member
             TeamMember.objects.create(
                 name=member_data["name"],
-                role=member_data["role"],
+                role_de=member_data["role_de"],
+                role_en=member_data["role_en"],
                 image=f"team/{dest_filename}",
                 order=member_data["order"],
             )
