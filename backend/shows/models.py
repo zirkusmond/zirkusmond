@@ -6,7 +6,8 @@ from django.db import models
 from django.utils import timezone
 from tinymce import models as tinymce_models
 
-from .image_processor import process_show_image
+from config.image_processor import process_image
+
 from .managers import PastShowManager, UnscheduledShowManager, UpcomingShowManager
 
 if TYPE_CHECKING:
@@ -83,15 +84,16 @@ class Show(models.Model):
 
     def save(self, *args, **kwargs):
         if self.card_image.name and not self.card_image.name.endswith(".webp"):
-            content = process_show_image(
+            content = process_image(
                 self.card_image,
                 max_width=self.CARD_IMAGE_MAX_WIDTH,
+                crop=True,
             )
             self.card_image.save(
                 f"{self.card_image.name.rsplit('.', 1)[0]}.webp", content, save=False
             )
         if self.banner_image.name and not self.banner_image.name.endswith(".webp"):
-            content = process_show_image(self.banner_image, max_width=1600, crop=False)
+            content = process_image(self.banner_image, max_width=1600, crop=False)
             self.banner_image.save(
                 f"{self.banner_image.name.rsplit('.', 1)[0]}.webp", content, save=False
             )

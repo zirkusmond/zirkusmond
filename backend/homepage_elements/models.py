@@ -46,15 +46,41 @@ class PostShowsElement(HomePageElement):
 
 
 class HeroImageElement(models.Model):
-    """Custom hero image for the homepage. When active, replaces the default hero image."""
+    """Custom hero image for the homepage. When active, replaces the default hero image.
+
+    Image requirements:
+    - Minimum width: 1440px
+    - Minimum height: 532px
+    - Recommended aspect ratio: 2.7:1 (landscape)
+    """
 
     image = models.ImageField(upload_to="hero_images/")
     active = models.BooleanField(default=False)
 
     objects: models.Manager["HeroImageElement"] = models.Manager()
 
+    MIN_WIDTH = 1440
+    MIN_HEIGHT = 532
+
     def __str__(self) -> str:
         return f"Hero Image ({self.image.name})"
+
+    def clean(self) -> None:
+        from django.core.exceptions import ValidationError
+        from PIL import Image
+
+        if self.image:
+            try:
+                img = Image.open(self.image)
+                width, height = img.size
+
+                if width < self.MIN_WIDTH or height < self.MIN_HEIGHT:
+                    raise ValidationError(
+                        f"Image must be at least {self.MIN_WIDTH}x{self.MIN_HEIGHT}px. "
+                        f"Uploaded image is {width}x{height}px."
+                    )
+            except (OSError, AttributeError) as e:
+                raise ValidationError(f"Invalid image file: {e}")
 
     def save(self, *args, **kwargs):
         # Only one hero image may be active at a time
