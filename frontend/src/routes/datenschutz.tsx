@@ -442,8 +442,8 @@ const SECTIONS: DsgvoSection[] = [
     ],
     links: [
       {
-        text: "production@zirkusmond.de",
-        href: "mailto:production@zirkusmond.de",
+        text: "mail@zirkusmond.de",
+        href: "mailto:mail@zirkusmond.de",
       },
     ],
   },
