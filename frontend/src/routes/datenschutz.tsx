@@ -441,7 +441,10 @@ const SECTIONS: DsgvoSection[] = [
       "Wenn Sie Fragen zum Datenschutz haben, schreiben Sie uns bitte eine E-Mail oder wenden Sie sich direkt an die verantwortliche Person:",
     ],
     links: [
-      { text: "zirkusmond@gmail.com", href: "mailto:zirkusmond@gmail.com" },
+      {
+        text: "production@zirkusmond.de",
+        href: "mailto:production@zirkusmond.de",
+      },
     ],
   },
 ];

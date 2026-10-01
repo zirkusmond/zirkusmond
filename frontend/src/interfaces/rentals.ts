@@ -12,13 +12,13 @@ export const MOCK_RENTAL_OBJECTS: RentalObject[] = [
     name: "Zirkuszelt",
     description: "Ein wunderschönes Zirkuszelt für Ihre Veranstaltung.",
     image: "/images/rentals/tent.webp",
-    link: "mailto:zirkusmond@gmail.com",
+    link: "mailto:production@zirkusmond.de",
   },
   {
     id: "2",
     name: "Bühne",
     description: "Professionelle Bühne für Shows und Events.",
     image: "/images/rentals/stage.webp",
-    link: "mailto:zirkusmond@gmail.com",
+    link: "mailto:production@zirkusmond.de",
   },
 ];

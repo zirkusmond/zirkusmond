@@ -72,9 +72,9 @@ export default function ContactSection() {
               {t("page_contact_reservations")}
               <a
                 className="my-4 sm:my-6 block underline"
-                href="mailto:zirkusmond@gmail.com"
+                href="mailto:production@zirkusmond.de"
               >
-                zirkusmond@gmail.com
+                production@zirkusmond.de
               </a>
             </p>
           </div>
