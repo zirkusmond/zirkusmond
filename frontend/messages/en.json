@@ -7,7 +7,8 @@
 
   "footer_impressum": "Imprint",
   "footer_datenschutz": "Privacy Policy",
-  "footer_address": "Lilli-Henoch-Str. Office at: Kultstätte 58 GmbH Körtestraße 38 10967 Berlin",
+  "footer_address": "Rudolfstr. 14c, 10245 Berlin. Office at: Kultstätte 58 GmbH Körtestraße 38 10967 Berlin",
+  "venue_address": "Rudolfstr. 14c, 10245 Berlin",
   "footer_director": "Managing Director Max Mohr",
   "footer_tax_info": "Tax No.: 37 / 406 / 50011 Tax ID: DE65 812 397 023 VAT ID: DE319431419",
 
@@ -53,8 +54,7 @@
   "page_payment_success_title": "Thank you for your reservation",
   "page_payment_success_confirmation": "A confirmation email has been sent to {email}. Please check your spam folder as well. We look forward to seeing you!",
   "page_payment_success_timing": "We open our gates at {admissionTime}, the show will start at {showTime}",
-  "page_payment_success_directions": "If you have not been to our tent yet, here are",
-  "page_payment_success_directions_link": "directions",
+  "page_payment_success_address": "You can find us here:",
   "page_payment_success_see_you": "See you at Zirkus Mond and have fun!",
   "page_payment_success_error": "Error loading reservation details. Please contact support.",
 

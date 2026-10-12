@@ -92,11 +92,7 @@ export default function ContactSection() {
         <div className="flex justify-center">
           <div>
             <h3 className="my-4 sm:my-6">{t("page_contact_find_us")}</h3>
-            <img
-              className="m-auto w-9/12 max-w-80"
-              src="/images/general/map.webp"
-              alt="Der Zirkus liegt in der Nähe der Lili-Henoch-Str."
-            />
+            <p>{t("venue_address")}</p>
           </div>
         </div>
 

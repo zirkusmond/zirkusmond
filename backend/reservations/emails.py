@@ -141,8 +141,7 @@ Im Anhang findest du das PDF mit deinen Tickets - fuer jede Person gibt es einen
 
 Wir oeffnen unsere Tore um {event.admission_time()}, die Show beginnt um {event.show_time()}.
 
-Falls du noch nie in unserem Zelt warst, empfehlen wir dir, dir den Weg ueber OpenStreetMap zeigen zu lassen:
-https://www.openstreetmap.org/directions?from=&to=52.54226,13.43250
+Adresse: Rudolfstr. 14c, 10245 Berlin
 
 Und falls du nicht nur Lust auf Zirkus, sondern auch auf Code hast: Die Website von Zirkus Mond ist auf GitHub oeffentlich einsehbar. Wenn du Fehler findest, Ideen hast oder ein wenig digitalen Glitzer beisteuern moechtest, freuen wir uns sehr ueber deinen Beitrag:
 https://github.com/zirkusmond/zirkusmond
@@ -164,8 +163,7 @@ The attached PDF contains a individual QR code for each person in your booking. 
 
 We open our gates at {event.admission_time()}, the Show will start at {event.show_time()}.
 
-If you have not been to our tent yet, you should ask OpenStreetMap for directions.
-https://www.openstreetmap.org/directions?from=&to=52.54226,13.43250
+Address: Rudolfstr. 14c, 10245 Berlin
 
 And if you are not only into circus but also into code: the Zirkus Mond website is public on GitHub. If you spot a bug, have an idea, or want to sprinkle in a little digital glitter, we would love your contribution:
 https://github.com/zirkusmond/zirkusmond

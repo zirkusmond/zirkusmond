@@ -71,15 +71,7 @@ const RouteComponent = () => {
             )}
 
             <p>
-              {t("page_payment_success_directions")}{" "}
-              <a
-                href="https://www.openstreetmap.org/directions?from=&to=52.54226%2C13.43250"
-                className="text-primary hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("page_payment_success_directions_link")}
-              </a>
+              {t("page_payment_success_address")} {t("venue_address")}
             </p>
 
             <p className="text-2xl">{t("page_payment_success_see_you")}</p>
