@@ -1,5 +1,6 @@
 import json
 import logging
+from email.utils import formataddr
 from io import BytesIO
 from typing import Any
 
@@ -182,6 +183,19 @@ Please note that tickets are non-refundable. However, if you can't make it, you'
     email.attach(f"tickets_{reservation.id}.pdf", pdf_buffer.read(), "application/pdf")
     email.send()
     logger.info("confirmation email delivered for reservation=%s", reservation.id)
+
+
+def send_custom_mail(name: str, email_address: str, subject: str, body: str) -> None:
+    """Send an admin-composed mail (e.g. "Send mail to Reservants") to a single recipient."""
+    logger.info("send_custom_mail: email=%s subject=%s", email_address, subject)
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[formataddr((name, email_address))],
+    )
+    email.send()
+    logger.info("custom email delivered to %s", email_address)
 
 
 def send_refund_mail(reservation: Reservation) -> None:

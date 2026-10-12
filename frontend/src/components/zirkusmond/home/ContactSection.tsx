@@ -54,7 +54,9 @@ export default function ContactSection() {
     <ContentSection>
       <PageHeader>{t("page_contact_title")}</PageHeader>
       <SectionCard className="flex flex-col justify-between gap-12 text-center text-primary lg:flex-row mt-">
-        <div className="flex flex-col justify-center align-middle lg:w-1/3">
+        <div className="flex flex-1 flex-col justify-center align-middle">
+          <h3 className="my-4 sm:my-6">{t("page_contact_find_us")}</h3>
+          <p>{t("venue_address")}</p>
           <div className="flex items-center justify-evenly py-4">
             {SOCIAL_LINKS.map((social) => (
               <a
@@ -88,15 +90,7 @@ export default function ContactSection() {
             </a>
           </Button>
         </div>
-
-        <div className="flex justify-center">
-          <div>
-            <h3 className="my-4 sm:my-6">{t("page_contact_find_us")}</h3>
-            <p>{t("venue_address")}</p>
-          </div>
-        </div>
-
-        <div className="lg:w-1/3 flex flex-col justify-center align-middle">
+        <div className="flex flex-1 flex-col justify-center align-middle">
           <h3 className="my-4 sm:my-6">{t("page_contact_mailing_list")}</h3>
           <p className="lg:pr-6">{t("page_contact_mailing_description")}</p>
           <p className="pt-3 sm:pt-4 lg:pr-6">

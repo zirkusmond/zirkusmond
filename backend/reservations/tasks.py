@@ -43,6 +43,16 @@ def send_confirmation_email(reservation_id: str):
 
 
 @shared_task
+def send_custom_email(name: str, email_address: str, subject: str, body: str):
+    """Send an admin-composed email to a single reservant."""
+    try:
+        emails.send_custom_mail(name, email_address, subject, body)
+    except Exception as error:
+        logger.error("Failed to send custom email to %s: %s", email_address, error)
+        raise
+
+
+@shared_task
 def send_refund_email(reservation_id: str):
     """Send refund notification email."""
     try:

@@ -1,7 +1,6 @@
 from typing import Any
 
 from django.contrib import admin
-from django.core.mail import EmailMessage
 from django.db.models import Count, Prefetch, QuerySet
 from django.http import HttpRequest, HttpResponseRedirect
 from django.template import Context, Template
@@ -11,7 +10,7 @@ from payments import PaymentStatus
 from unfold.admin import ModelAdmin
 
 from events.forms import EmailTextForm
-from reservations import emails
+from reservations import emails, tasks
 from reservations.models import Reservation, ReservationPayment
 from reservations.payments.models import Payment
 
@@ -51,15 +50,12 @@ def send_email_to_reservants(
         if "send" in request.POST.keys():
             for reservation_dict in dicts:
                 subject, text = render_mail(mail_subject, mail_text, reservation_dict)
-                message = EmailMessage(
+                tasks.send_custom_email.delay(
+                    f"{reservation_dict['firstname']} {reservation_dict['surname']}",
+                    reservation_dict["email"],
                     subject,
                     text,
-                    "reservation@zirkusmond.de",
-                    [
-                        f"{reservation_dict['firstname']} {reservation_dict['surname']} <{reservation_dict['email']}>"
-                    ],
                 )
-                message.send()
 
             return HttpResponseRedirect(request.get_full_path())
 

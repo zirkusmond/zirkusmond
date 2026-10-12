@@ -4,7 +4,7 @@ from io import BytesIO
 from unittest.mock import patch
 
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from PIL import Image
 
@@ -14,6 +14,7 @@ from reservations.payments.models import Payment
 from reservations.tasks import (
     cleanup_abandoned_payments,
     send_confirmation_email,
+    send_custom_email,
     send_refund_email,
 )
 from shows.models import Show
@@ -255,6 +256,31 @@ class SendRefundEmailTest(TestCase):
 
         with self.assertRaises(Exception):
             send_refund_email(str(self.reservation.id))
+
+
+class SendCustomEmailTest(TestCase):
+    @override_settings(DEFAULT_FROM_EMAIL="noreply@zirkusmond.test")
+    def test_sends_email_from_default_from_address(self):
+        send_custom_email("Anna Muster", "anna@example.com", "Hallo", "Body text")
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.from_email, "noreply@zirkusmond.test")
+        self.assertEqual(email.to, ["Anna Muster <anna@example.com>"])
+        self.assertEqual(email.subject, "Hallo")
+        self.assertEqual(email.body, "Body text")
+
+    def test_quotes_names_with_special_characters(self):
+        send_custom_email("Muster, Anna", "anna@example.com", "Hallo", "Body")
+
+        self.assertEqual(mail.outbox[0].to, ['"Muster, Anna" <anna@example.com>'])
+
+    @patch("reservations.emails.send_custom_mail")
+    def test_task_raises_on_email_error(self, mock_send):
+        mock_send.side_effect = Exception("Email service down")
+
+        with self.assertRaises(Exception):
+            send_custom_email("Anna", "anna@example.com", "Hallo", "Body")
 
 
 class PaymentSignalsTest(TestCase):
