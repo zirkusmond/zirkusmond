@@ -17,19 +17,12 @@ interface PaymentFailureSearch {
 const validatePaymentFailureSearch = (
   search: Record<string, unknown>,
 ): PaymentFailureSearch => {
-  console.log(
-    "Raw search params:",
-    search,
-    "type: ",
-    typeof search.eventShowId,
-  );
   const result = {
     paymentId:
       typeof search.paymentId === "string" ? search.paymentId : undefined,
     eventShowId:
       typeof search.eventShowId === "number" ? search.eventShowId : undefined,
   };
-  console.log("Validated result:", result);
   return result;
 };
 

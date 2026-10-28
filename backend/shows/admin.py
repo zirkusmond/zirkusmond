@@ -3,7 +3,10 @@ from datetime import time as dtime
 from typing import Any
 
 from django import forms
-from django.contrib import admin
+from django.conf import settings
+from django.contrib import admin, messages
+from django.core.mail import send_mail
+from django.core.signing import TimestampSigner
 from django.db.models import (
     Count,
     F,
@@ -21,6 +24,7 @@ from django.http import HttpRequest
 from django.utils import timezone
 from tinymce.widgets import TinyMCE
 from unfold.admin import ModelAdmin
+from unfold.decorators import action
 
 from events.models import Event
 from reservations.models import Guest, Payment
@@ -278,7 +282,43 @@ class ShowAdmin(ModelAdmin):
         return timezone.localtime(next_begin).strftime("%d.%m.%y %H:%M")
 
 
-admin.site.register(UpcomingShow, ShowAdmin)
+class UpcomingShowAdminForm(ShowForm):
+    organiser_email = forms.EmailField(
+        required=False,
+        help_text="Enter an email to send a secret access link for this show",
+        label="Organiser email",
+    )
+
+
+class UpcomingShowAdmin(ShowAdmin):
+    form = UpcomingShowAdminForm
+    actions_submit_line = ["send_organiser_link"]
+
+    @action(description="Save and send organiser access link")
+    def send_organiser_link(self, request: HttpRequest, obj: UpcomingShow):
+        email = request.POST.get("organiser_email")
+        if not email:
+            messages.error(request, "Enter an organiser email before sending the link.")
+            return
+
+        token = TimestampSigner().sign(str(obj.pk))
+
+        sales_url = f"{settings.FRONTEND_URL}/s/{obj.pk}/stats?token={token}"
+
+        send_mail(
+            "Your show ticket sales link",
+            f"Hello, \nwith this link you can directly view your current ticket sales for all events of your show {obj}: {sales_url}.",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+        )
+        messages.success(
+            request,
+            f"Access link sent to {email} for “{obj}”.",
+        )
+        print("URL", sales_url)
+
+
+admin.site.register(UpcomingShow, UpcomingShowAdmin)
 admin.site.register(UnscheduledShow, ShowAdmin)
 admin.site.register(PastShow, ShowAdmin)
 admin.site.register(Show, ShowAdmin)
