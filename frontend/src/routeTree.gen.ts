@@ -23,6 +23,7 @@ import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as ReserveShowIdRouteImport } from './routes/reserve.$showId'
 import { Route as ShowShowIdRouteImport } from './routes/show.$showId'
 import { Route as ReserveShowIdPaymentRouteImport } from './routes/reserve.$showId_.payment'
+import { Route as ShowsShowIdStatsRouteImport } from './routes/shows_.$showId.stats'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +95,11 @@ const ReserveShowIdPaymentRoute = ReserveShowIdPaymentRouteImport.update({
   path: '/reserve/$showId/payment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShowsShowIdStatsRoute = ShowsShowIdStatsRouteImport.update({
+  id: '/shows_/$showId/stats',
+  path: '/shows/$showId/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/reserve/$showId': typeof ReserveShowIdRoute
   '/show/$showId': typeof ShowShowIdRoute
   '/reserve/$showId/payment': typeof ReserveShowIdPaymentRoute
+  '/shows/$showId/stats': typeof ShowsShowIdStatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/reserve/$showId': typeof ReserveShowIdRoute
   '/show/$showId': typeof ShowShowIdRoute
   '/reserve/$showId/payment': typeof ReserveShowIdPaymentRoute
+  '/shows/$showId/stats': typeof ShowsShowIdStatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/reserve/$showId': typeof ReserveShowIdRoute
   '/show/$showId': typeof ShowShowIdRoute
   '/reserve/$showId_/payment': typeof ReserveShowIdPaymentRoute
+  '/shows_/$showId/stats': typeof ShowsShowIdStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/reserve/$showId'
     | '/show/$showId'
     | '/reserve/$showId/payment'
+    | '/shows/$showId/stats'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/reserve/$showId'
     | '/show/$showId'
     | '/reserve/$showId/payment'
+    | '/shows/$showId/stats'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/reserve/$showId'
     | '/show/$showId'
     | '/reserve/$showId_/payment'
+    | '/shows_/$showId/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   ReserveShowIdRoute: typeof ReserveShowIdRoute
   ShowShowIdRoute: typeof ShowShowIdRoute
   ReserveShowIdPaymentRoute: typeof ReserveShowIdPaymentRoute
+  ShowsShowIdStatsRoute: typeof ShowsShowIdStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReserveShowIdPaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shows_/$showId/stats': {
+      id: '/shows_/$showId/stats'
+      path: '/shows/$showId/stats'
+      fullPath: '/shows/$showId/stats'
+      preLoaderRoute: typeof ShowsShowIdStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReserveShowIdRoute: ReserveShowIdRoute,
   ShowShowIdRoute: ShowShowIdRoute,
   ReserveShowIdPaymentRoute: ReserveShowIdPaymentRoute,
+  ShowsShowIdStatsRoute: ShowsShowIdStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

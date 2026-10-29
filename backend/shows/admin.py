@@ -5,8 +5,8 @@ from typing import Any
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
+from django.core import signing
 from django.core.mail import send_mail
-from django.core.signing import TimestampSigner
 from django.db.models import (
     Count,
     F,
@@ -27,6 +27,7 @@ from unfold.admin import ModelAdmin
 from unfold.decorators import action
 
 from events.models import Event
+from events.stats import STATS_TOKEN_SALT
 from reservations.models import Guest, Payment
 
 from .models import PastShow, Show, UnscheduledShow, UpcomingShow
@@ -296,14 +297,14 @@ class UpcomingShowAdmin(ShowAdmin):
 
     @action(description="Save and send organiser access link")
     def send_organiser_link(self, request: HttpRequest, obj: UpcomingShow):
-        email = request.POST.get("organiser_email")
+        email = request.POST.get("organiser_email").lower().strip()
         if not email:
             messages.error(request, "Enter an organiser email before sending the link.")
             return
 
-        token = TimestampSigner().sign(str(obj.pk))
+        token = signing.dumps({"show_id": obj.pk}, salt=STATS_TOKEN_SALT)
 
-        sales_url = f"{settings.FRONTEND_URL}/s/{obj.pk}/stats?token={token}"
+        sales_url = f"{settings.FRONTEND_URL}/shows/{obj.pk}/stats?token={token}"
 
         send_mail(
             "Your show ticket sales link",

@@ -2,23 +2,15 @@ from io import BytesIO
 
 import xlsxwriter
 from django.contrib import admin
-from django.db.models import (
-    Count,
-    DecimalField,
-    IntegerField,
-    OuterRef,
-    QuerySet,
-    Subquery,
-    Sum,
-    Value,
-)
-from django.db.models.functions import Coalesce, Lower
+from django.db.models import QuerySet
+from django.db.models.functions import Lower
 from django.http import HttpRequest, HttpResponse
 from unfold.admin import ModelAdmin
 from unfold.decorators import action
 from xlsxwriter.worksheet import Worksheet
 
 from events.models import Event, PastEvent, UpcomingEvent
+from events.stats import with_event_stats
 from reservations.models import Guest, Payment, Reservation
 from reservations.payments.admin import reservation_to_dict, send_email_to_reservants
 
@@ -46,51 +38,7 @@ class BaseEventAdmin(ModelAdmin):
     def get_queryset(self, request: HttpRequest) -> QuerySet[Event]:
         queryset = super().get_queryset(request)
         queryset = queryset.select_related("show")
-
-        confirmed_reservations = (
-            Payment.objects.filter(
-                reservation__event=OuterRef("pk"),
-                status=Payment.Status.COMPLETED,
-            )
-            .values("reservation__event")
-            .annotate(count=Count("reservation", distinct=True))
-            .values("count")
-        )
-
-        confirmed_guests = (
-            Guest.objects.filter(
-                reservation__event=OuterRef("pk"),
-                reservation__payment__status=Payment.Status.COMPLETED,
-            )
-            .values("reservation__event")
-            .annotate(count=Count("pk", distinct=True))
-            .values("count")
-        )
-
-        revenue_subquery = (
-            Payment.objects.filter(
-                reservation__event=OuterRef("pk"),
-                status=Payment.Status.COMPLETED,
-            )
-            .values("reservation__event")
-            .annotate(total=Sum("total"))
-            .values("total")
-        )
-
-        queryset = queryset.annotate(
-            annotated_reservation_count=Coalesce(
-                Subquery(confirmed_reservations, output_field=IntegerField()),
-                Value(0),
-                output_field=IntegerField(),
-            )
-            + Coalesce(
-                Subquery(confirmed_guests, output_field=IntegerField()),
-                Value(0),
-                output_field=IntegerField(),
-            ),
-            total_revenue=Subquery(revenue_subquery, output_field=DecimalField()),
-        )
-        return queryset
+        return with_event_stats(queryset)
 
     @admin.display(description="Revenue", ordering="total_revenue")
     def revenue(self, obj: Event) -> str:
