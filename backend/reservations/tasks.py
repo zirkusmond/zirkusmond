@@ -1,7 +1,9 @@
 import logging
 from datetime import timedelta
 
+import stripe
 from celery import shared_task
+from django.conf import settings
 from django.utils import timezone
 
 from reservations import emails
@@ -64,3 +66,36 @@ def send_refund_email(reservation_id: str):
     except Exception as error:
         logger.error("Failed to send refund email for reservation=%s: %s", reservation_id, error)
         raise
+
+
+# bind = true passes the the task instance as the first argument, so self is task object.
+# gives access to self.retry, self.max_retries, etc
+@shared_task(bind=True, max_retries=3)
+def refund_payment(self, payment_id: str):
+    """Send refund, through Stripe"""
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    try:
+        payment = Payment.objects.get(pk=payment_id)
+    except Payment.DoesNotExist:
+        logger.error("Cannot refund payment=%s: not found", payment_id)
+        return
+
+    if payment.status != Payment.Status.COMPLETED:
+        return
+    if not payment.stripe_payment_intent_id:
+        logger.error("Cannot refund payment=%s: missing Stripe PaymentIntent ID", payment.pk)
+        return
+
+    try:
+        stripe.Refund.create(
+            payment_intent=payment.stripe_payment_intent_id,
+            idempotency_key=f"refund-{payment.pk}",
+        )
+    except stripe.InvalidRequestError as exc:
+        logger.error("Refund failed permanently for payment=%s: %s", payment.pk, exc)
+        return
+    except stripe.StripeError as exc:
+        raise self.retry(exc=exc, countdown=60)
+
+    payment.status = Payment.Status.REFUNDED
+    payment.save(update_fields=["status"])  # post save files on this function call

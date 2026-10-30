@@ -22,6 +22,7 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest
 from django.utils import timezone
+from django.utils.html import format_html
 from tinymce.widgets import TinyMCE
 from unfold.admin import ModelAdmin
 from unfold.widgets import UnfoldAdminEmailInputWidget
@@ -312,6 +313,15 @@ class UpcomingShowAdmin(ShowAdmin):
             f"Hello, \nwith this link you can directly view your current ticket sales for all events of your show {obj}: {sales_url}.",
             settings.DEFAULT_FROM_EMAIL,
             [email],
+            html_message=format_html(
+                "<p>Hello,</p><p>with this link you can directly view your current ticket sales "
+                'for all events of your show {}: <a href="{}">{}</a>.</p>'
+                "<p>You can share this link with whoever you like.</p>"
+                "<br><br><p>Your Zirkus Mond Team</p>",
+                obj,
+                sales_url,
+                sales_url,
+            ),
         )
 
 

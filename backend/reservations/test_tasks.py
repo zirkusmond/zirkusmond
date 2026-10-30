@@ -3,6 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 from unittest.mock import patch
 
+import stripe
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -13,6 +14,7 @@ from reservations.models import Reservation
 from reservations.payments.models import Payment
 from reservations.tasks import (
     cleanup_abandoned_payments,
+    refund_payment,
     send_confirmation_email,
     send_custom_email,
     send_refund_email,
@@ -256,6 +258,102 @@ class SendRefundEmailTest(TestCase):
 
         with self.assertRaises(Exception):
             send_refund_email(str(self.reservation.id))
+
+
+@override_settings(STRIPE_SECRET_KEY="sk_test_expected")
+class RefundPaymentTaskTest(TestCase):
+    def setUp(self):
+        self.show = Show.objects.create(
+            title="Test Show",
+            description="",
+            cast="",
+            card_image=make_image(),
+            banner_image=make_banner_image(),
+            base_ticket_price=15,
+        )
+        base = timezone.now() + timedelta(days=7)
+        self.event = Event.objects.create(
+            show=self.show,
+            admission=base.replace(hour=19, minute=0, second=0, microsecond=0),
+            begin=base.replace(hour=20, minute=0, second=0, microsecond=0),
+            reservation_capacity=150,
+            open_for_reservation=True,
+        )
+        self.reservation = Reservation.objects.create(
+            event=self.event, first_name="Test", last_name="User", email="test@example.com"
+        )
+        self.payment = Payment.objects.create(
+            reservation=self.reservation,
+            status=Payment.Status.COMPLETED,
+            stripe_payment_intent_id="pi_test_123",
+            total=Decimal("30.00"),
+            custom_ticket_price=15,
+        )
+        # Clear confirmation email queued by the COMPLETED payment signal.
+        mail.outbox.clear()
+
+    @patch("reservations.tasks.send_refund_email.delay")
+    @patch("reservations.tasks.stripe.Refund.create")
+    def test_refunds_completed_payment_and_marks_it_refunded(self, mock_refund, mock_email):
+        refund_payment(str(self.payment.pk))
+
+        self.assertEqual(stripe.api_key, "sk_test_expected")
+        mock_refund.assert_called_once_with(
+            payment_intent="pi_test_123",
+            idempotency_key=f"refund-{self.payment.pk}",
+        )
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, Payment.Status.REFUNDED)
+        mock_email.assert_called_once_with(str(self.reservation.id))
+
+    @patch("reservations.tasks.stripe.Refund.create")
+    def test_skips_payment_without_payment_intent(self, mock_refund):
+        for missing_intent in (None, ""):
+            with self.subTest(missing_intent=missing_intent):
+                Payment.objects.filter(pk=self.payment.pk).update(
+                    status=Payment.Status.COMPLETED,
+                    stripe_payment_intent_id=missing_intent,
+                )
+
+                with self.assertLogs("reservations.tasks", level="ERROR") as logs:
+                    refund_payment(str(self.payment.pk))
+
+                mock_refund.assert_not_called()
+                self.payment.refresh_from_db()
+                self.assertEqual(self.payment.status, Payment.Status.COMPLETED)
+                self.assertTrue(
+                    any("missing Stripe PaymentIntent ID" in line for line in logs.output)
+                )
+
+    @patch("reservations.tasks.stripe.Refund.create")
+    def test_skips_payment_not_completed(self, mock_refund):
+        Payment.objects.filter(pk=self.payment.pk).update(status=Payment.Status.PENDING)
+
+        refund_payment(str(self.payment.pk))
+
+        mock_refund.assert_not_called()
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, Payment.Status.PENDING)
+
+    @patch("reservations.tasks.stripe.Refund.create")
+    def test_handles_missing_payment(self, mock_refund):
+        with self.assertLogs("reservations.tasks", level="ERROR") as logs:
+            refund_payment("00000000-0000-0000-0000-000000000000")
+
+        mock_refund.assert_not_called()
+        self.assertTrue(any("not found" in line for line in logs.output))
+
+    @patch("reservations.tasks.stripe.Refund.create")
+    def test_does_not_retry_invalid_request(self, mock_refund):
+        mock_refund.side_effect = stripe.InvalidRequestError("cannot refund", param=None)
+
+        with self.assertLogs("reservations.tasks", level="ERROR") as logs:
+            refund_payment(str(self.payment.pk))
+
+        mock_refund.assert_called_once()
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, Payment.Status.COMPLETED)
+        self.assertTrue(any("failed permanently" in line for line in logs.output))
 
 
 class SendCustomEmailTest(TestCase):
