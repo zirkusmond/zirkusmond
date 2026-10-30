@@ -1,10 +1,12 @@
 import shutil
 import tempfile
 from datetime import timedelta
+from decimal import Decimal
 from io import BytesIO
 from typing import Any
 
 from django.conf import settings
+from django.core import signing
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -12,6 +14,8 @@ from PIL import Image
 
 from config.image_processor import process_image
 from events.models import Event
+from events.stats import STATS_TOKEN_SALT
+from reservations.models import Guest, Payment, Reservation
 from shows.models import PastShow, Show, UnscheduledShow, UpcomingShow
 
 # ---------------------------------------------------------------------------
@@ -55,6 +59,34 @@ def make_event(show: Show, offset_days: int = 7) -> Event:
         reservation_capacity=150,
         open_for_reservation=True,
     )
+
+
+def make_reservation(event: Event, **kwargs: Any) -> Reservation:
+    defaults = dict(first_name="Test", last_name="User", email="test@example.com")
+    defaults.update(kwargs)
+    return Reservation.objects.create(event=event, **defaults)
+
+
+def make_payment(
+    reservation: Reservation,
+    *,
+    total: Decimal | int = 15,
+    status: str = Payment.Status.COMPLETED,
+) -> Payment:
+    payment = Payment.objects.create(
+        reservation=reservation,
+        total=Decimal(total),
+        custom_ticket_price=15,
+        status=Payment.Status.PENDING,
+    )
+    if status != Payment.Status.PENDING:
+        Payment.objects.filter(pk=payment.pk).update(status=status)
+        payment.status = status
+    return payment
+
+
+def make_stats_token(show: Show) -> str:
+    return signing.dumps({"show_id": show.pk}, salt=STATS_TOKEN_SALT)
 
 
 # ---------------------------------------------------------------------------
@@ -373,6 +405,110 @@ class SiteViewsTest(TestCase):
         titles = [s["title"] for s in data["upcoming_shows"]]
         self.assertIn("Public", titles)
         self.assertNotIn("Private", titles)
+
+
+# ---------------------------------------------------------------------------
+# Show stats
+# ---------------------------------------------------------------------------
+
+
+class GetShowStatsViewTest(TestCase):
+    def setUp(self) -> None:
+        self.show = make_show(title="Stats Show")
+        self.token = make_stats_token(self.show)
+
+    def get_stats(self, *, token: str | None = None, show: Show | None = None):
+        show = show or self.show
+        params = {} if token is None else {"token": token}
+        return self.client.get(f"/shows/{show.pk}/stats", params)
+
+    def test_requires_token(self) -> None:
+        response = self.get_stats()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"error": "Missing token"})
+
+    def test_rejects_invalid_token(self) -> None:
+        response = self.get_stats(token="not-a-valid-token")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json(), {"error": "Invalid token"})
+
+    def test_rejects_token_for_another_show(self) -> None:
+        other_show = make_show(title="Other Show")
+        response = self.get_stats(token=make_stats_token(other_show))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json(), {"error": "Invalid token"})
+
+    def test_returns_404_for_unknown_show(self) -> None:
+        response = self.client.get("/shows/999999/stats", {"token": self.token})
+        self.assertEqual(response.status_code, 404)
+
+    def test_rejects_expired_show(self) -> None:
+        make_event(self.show, offset_days=-8)
+        response = self.get_stats(token=self.token)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json(), {"error": "Token expired"})
+
+    def test_returns_empty_stats_for_show_without_events(self) -> None:
+        response = self.get_stats(token=self.token)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "show_title": "Stats Show",
+                "events": [],
+                "totals": {
+                    "reservation_capacity": 0,
+                    "reserved_tickets": 0,
+                    "revenue": 0.0,
+                },
+            },
+        )
+
+    def test_returns_stats_for_all_events_in_admission_order(self) -> None:
+        past_event = make_event(self.show, offset_days=-1)
+        future_event = make_event(self.show, offset_days=7)
+
+        past_reservation = make_reservation(past_event, email="past@example.com")
+        Guest.objects.create(
+            reservation=past_reservation,
+            first_name="Guest",
+            last_name="User",
+        )
+        make_payment(past_reservation, total=Decimal("30.00"))
+
+        second_past_reservation = make_reservation(past_event, email="second@example.com")
+        make_payment(second_past_reservation, total=Decimal("20.00"))
+
+        pending_reservation = make_reservation(future_event, email="pending@example.com")
+        make_payment(pending_reservation, total=Decimal("100.00"), status=Payment.Status.PENDING)
+
+        response = self.get_stats(token=self.token)
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertEqual(data["show_title"], "Stats Show")
+        self.assertEqual(
+            [event["id"] for event in data["events"]],
+            [past_event.id, future_event.id],
+        )
+
+        past_stats, future_stats = data["events"]
+        self.assertEqual(past_stats["reservation_capacity"], 150)
+        self.assertEqual(past_stats["reserved_tickets"], 3)
+        self.assertEqual(past_stats["revenue"], 50.0)
+
+        self.assertEqual(future_stats["reservation_capacity"], 150)
+        self.assertEqual(future_stats["reserved_tickets"], 0)
+        self.assertEqual(future_stats["revenue"], 0)
+
+        self.assertEqual(
+            data["totals"],
+            {
+                "reservation_capacity": 300,
+                "reserved_tickets": 3,
+                "revenue": 50.0,
+            },
+        )
 
 
 # ---------------------------------------------------------------------------

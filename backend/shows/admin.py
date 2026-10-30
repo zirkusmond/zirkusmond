@@ -24,7 +24,7 @@ from django.http import HttpRequest
 from django.utils import timezone
 from tinymce.widgets import TinyMCE
 from unfold.admin import ModelAdmin
-from unfold.decorators import action
+from unfold.widgets import UnfoldAdminEmailInputWidget
 
 from events.models import Event
 from events.stats import STATS_TOKEN_SALT
@@ -288,20 +288,21 @@ class UpcomingShowAdminForm(ShowForm):
         required=False,
         help_text="Enter an email to send a secret access link for this show",
         label="Organiser email",
+        widget=UnfoldAdminEmailInputWidget(),
     )
 
 
 class UpcomingShowAdmin(ShowAdmin):
     form = UpcomingShowAdminForm
-    actions_submit_line = ["send_organiser_link"]
 
-    @action(description="Save and send organiser access link")
-    def send_organiser_link(self, request: HttpRequest, obj: UpcomingShow):
-        email = request.POST.get("organiser_email").lower().strip()
-        if not email:
-            messages.error(request, "Enter an organiser email before sending the link.")
-            return
+    def save_model(self, request: HttpRequest, obj: UpcomingShow, form: Any, change: bool) -> None:
+        super().save_model(request, obj, form, change)
+        email = (form.cleaned_data.get("organiser_email") or "").lower().strip()
+        if email:
+            self._send_organiser_link(obj, email)
+            messages.success(request, f"Access link sent to {email} for “{obj}”.")
 
+    def _send_organiser_link(self, obj: UpcomingShow, email: str) -> None:
         token = signing.dumps({"show_id": obj.pk}, salt=STATS_TOKEN_SALT)
 
         sales_url = f"{settings.FRONTEND_URL}/shows/{obj.pk}/stats?token={token}"
@@ -312,11 +313,6 @@ class UpcomingShowAdmin(ShowAdmin):
             settings.DEFAULT_FROM_EMAIL,
             [email],
         )
-        messages.success(
-            request,
-            f"Access link sent to {email} for “{obj}”.",
-        )
-        print("URL", sales_url)
 
 
 admin.site.register(UpcomingShow, UpcomingShowAdmin)

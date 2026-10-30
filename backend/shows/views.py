@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.core import signing
 from django.shortcuts import get_object_or_404
@@ -47,19 +48,27 @@ def get_show_stats(request: Request, show_id: int) -> Response:
         return Response({"error": "Token expired"}, status=403)
 
     events = with_event_stats(show.events.order_by("admission"))
+    event_data = [
+        {
+            "id": event.id,
+            "time_and_date": event.date_str(),
+            "reservation_capacity": event.reservation_capacity,
+            "reserved_tickets": getattr(event, "annotated_reservation_count", 0),
+            "revenue": getattr(event, "total_revenue", None) or 0,
+        }
+        for event in events
+    ]
+
+    totals = {
+        "reservation_capacity": sum(event["reservation_capacity"] for event in event_data),
+        "reserved_tickets": sum(event["reserved_tickets"] for event in event_data),
+        "revenue": sum((event["revenue"] for event in event_data), Decimal("0")),
+    }
 
     return Response(
         {
             "show_title": show.title,
-            "events": [
-                {
-                    "id": event.id,
-                    "time_and_date": event.time_and_date(),
-                    "reservation_capacity": event.reservation_capacity,
-                    "reserved_tickets": getattr(event, "annotated_reservation_count", 0),
-                    "revenue": getattr(event, "total_revenue", None) or 0,
-                }
-                for event in events
-            ],
+            "events": event_data,
+            "totals": totals,
         }
     )
