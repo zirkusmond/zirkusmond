@@ -21,7 +21,7 @@ import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as PaymentFailureRouteImport } from './routes/payment.failure'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as ReserveShowIdRouteImport } from './routes/reserve.$showId'
-import { Route as ShowsShowIdRouteImport } from './routes/shows_.$showId.tsxd'
+import { Route as ShowsShowIdRouteImport } from './routes/shows_.$showId'
 import { Route as ReserveShowIdPaymentRouteImport } from './routes/reserve.$showId_.payment'
 import { Route as ShowsShowIdStatsRouteImport } from './routes/shows_.$showId.stats'
 
