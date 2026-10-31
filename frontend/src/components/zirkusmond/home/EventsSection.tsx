@@ -29,7 +29,7 @@ export default function EventsSection({
         {shows.map((show) => (
           <Link
             key={show.id}
-            to="/show/$showId"
+            to="/shows/$showId"
             params={{ showId: String(show.id) }}
           >
             <EventCard

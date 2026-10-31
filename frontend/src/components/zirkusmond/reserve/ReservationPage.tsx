@@ -62,7 +62,7 @@ export default function ReservationPage({ show }: ReservationPageProps) {
   });
 
   const handleBack = () => {
-    navigate({ to: "/show/$showId", params: { showId: String(show.id) } });
+    navigate({ to: "/shows/$showId", params: { showId: String(show.id) } });
   };
 
   const handleFillDummyData = () => {
