@@ -787,3 +787,13 @@ class PageViewMiddlewareTest(TestCase):
         self.client.get("/", HTTP_REFERER="https://example.com")
         page_view = PageView.objects.get()
         self.assertEqual(page_view.referer, "https://example.com")
+
+    def test_truncates_too_long_referer_and_user_agent(self) -> None:
+        long_referer = "https://example.com/" + "a" * 2000
+        long_user_agent = "Mozilla/5.0 " + "b" * 1000
+
+        self.client.get("/", HTTP_REFERER=long_referer, HTTP_USER_AGENT=long_user_agent)
+
+        page_view = PageView.objects.get()
+        self.assertEqual(len(page_view.referer), 1000)
+        self.assertEqual(len(page_view.user_agent), 500)

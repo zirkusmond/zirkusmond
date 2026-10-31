@@ -11,8 +11,8 @@ class PageView(models.Model):
         BOT = "bot"
 
     session_key = models.CharField(max_length=40, db_index=True)
-    path = models.CharField(max_length=255)
-    referer = models.CharField(max_length=255, blank=True)
+    path = models.CharField(max_length=500)
+    referer = models.CharField(max_length=1000, blank=True)
     user_agent = models.CharField(max_length=500, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     device_type = models.CharField(max_length=10, choices=DeviceChoices)

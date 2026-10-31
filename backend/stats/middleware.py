@@ -24,6 +24,12 @@ _SCANNER_PATH_PREFIXES = (
 )
 
 
+def _truncate(value, field_name):
+    """Trim a value to the model field's max_length so oversized input can't break inserts."""
+    max_length = PageView._meta.get_field(field_name).max_length
+    return value[:max_length]
+
+
 def _is_scanner_path(path):
     """Return True if path matches known scanner/bot patterns."""
     if path.startswith(_SCANNER_PATH_PREFIXES):
@@ -83,9 +89,9 @@ class PageViewMiddleware:
         # create new pageView. left_at is now null on this pv
         PageView.objects.create(
             session_key=session_key,
-            path=request.path,
-            referer=request.META.get("HTTP_REFERER", ""),
-            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            path=_truncate(request.path, "path"),
+            referer=_truncate(request.META.get("HTTP_REFERER", ""), "referer"),
+            user_agent=_truncate(request.META.get("HTTP_USER_AGENT", ""), "user_agent"),
             ip_address=request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or None,
             device_type=PageView.detect_device(user_agent),
         )
