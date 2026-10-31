@@ -21,7 +21,7 @@ import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as PaymentFailureRouteImport } from './routes/payment.failure'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as ReserveShowIdRouteImport } from './routes/reserve.$showId'
-import { Route as ShowsShowIdRouteImport } from './routes/shows.$showId'
+import { Route as ShowsShowIdRouteImport } from './routes/shows_.$showId.tsxd'
 import { Route as ReserveShowIdPaymentRouteImport } from './routes/reserve.$showId_.payment'
 import { Route as ShowsShowIdStatsRouteImport } from './routes/shows_.$showId.stats'
 
@@ -86,9 +86,9 @@ const ReserveShowIdRoute = ReserveShowIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShowsShowIdRoute = ShowsShowIdRouteImport.update({
-  id: '/$showId',
-  path: '/$showId',
-  getParentRoute: () => ShowsRoute,
+  id: '/shows_/$showId',
+  path: '/shows/$showId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ReserveShowIdPaymentRoute = ReserveShowIdPaymentRouteImport.update({
   id: '/reserve/$showId_/payment',
@@ -96,9 +96,9 @@ const ReserveShowIdPaymentRoute = ReserveShowIdPaymentRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShowsShowIdStatsRoute = ShowsShowIdStatsRouteImport.update({
-  id: '/shows_/$showId/stats',
-  path: '/shows/$showId/stats',
-  getParentRoute: () => rootRouteImport,
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => ShowsShowIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -109,12 +109,12 @@ export interface FileRoutesByFullPath {
   '/impressum': typeof ImpressumRoute
   '/qr-scanner': typeof QrScannerRoute
   '/rentals': typeof RentalsRoute
-  '/shows': typeof ShowsRouteWithChildren
+  '/shows': typeof ShowsRoute
   '/api/$': typeof ApiSplatRoute
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/reserve/$showId': typeof ReserveShowIdRoute
-  '/shows/$showId': typeof ShowsShowIdRoute
+  '/shows/$showId': typeof ShowsShowIdRouteWithChildren
   '/reserve/$showId/payment': typeof ReserveShowIdPaymentRoute
   '/shows/$showId/stats': typeof ShowsShowIdStatsRoute
 }
@@ -126,12 +126,12 @@ export interface FileRoutesByTo {
   '/impressum': typeof ImpressumRoute
   '/qr-scanner': typeof QrScannerRoute
   '/rentals': typeof RentalsRoute
-  '/shows': typeof ShowsRouteWithChildren
+  '/shows': typeof ShowsRoute
   '/api/$': typeof ApiSplatRoute
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/reserve/$showId': typeof ReserveShowIdRoute
-  '/shows/$showId': typeof ShowsShowIdRoute
+  '/shows/$showId': typeof ShowsShowIdRouteWithChildren
   '/reserve/$showId/payment': typeof ReserveShowIdPaymentRoute
   '/shows/$showId/stats': typeof ShowsShowIdStatsRoute
 }
@@ -144,12 +144,12 @@ export interface FileRoutesById {
   '/impressum': typeof ImpressumRoute
   '/qr-scanner': typeof QrScannerRoute
   '/rentals': typeof RentalsRoute
-  '/shows': typeof ShowsRouteWithChildren
+  '/shows': typeof ShowsRoute
   '/api/$': typeof ApiSplatRoute
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/reserve/$showId': typeof ReserveShowIdRoute
-  '/shows/$showId': typeof ShowsShowIdRoute
+  '/shows_/$showId': typeof ShowsShowIdRouteWithChildren
   '/reserve/$showId_/payment': typeof ReserveShowIdPaymentRoute
   '/shows_/$showId/stats': typeof ShowsShowIdStatsRoute
 }
@@ -202,7 +202,7 @@ export interface FileRouteTypes {
     | '/payment/failure'
     | '/payment/success'
     | '/reserve/$showId'
-    | '/shows/$showId'
+    | '/shows_/$showId'
     | '/reserve/$showId_/payment'
     | '/shows_/$showId/stats'
   fileRoutesById: FileRoutesById
@@ -215,13 +215,13 @@ export interface RootRouteChildren {
   ImpressumRoute: typeof ImpressumRoute
   QrScannerRoute: typeof QrScannerRoute
   RentalsRoute: typeof RentalsRoute
-  ShowsRoute: typeof ShowsRouteWithChildren
+  ShowsRoute: typeof ShowsRoute
   ApiSplatRoute: typeof ApiSplatRoute
   PaymentFailureRoute: typeof PaymentFailureRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   ReserveShowIdRoute: typeof ReserveShowIdRoute
+  ShowsShowIdRoute: typeof ShowsShowIdRouteWithChildren
   ReserveShowIdPaymentRoute: typeof ReserveShowIdPaymentRoute
-  ShowsShowIdStatsRoute: typeof ShowsShowIdStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -310,12 +310,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReserveShowIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shows/$showId': {
-      id: '/shows/$showId'
-      path: '/$showId'
+    '/shows_/$showId': {
+      id: '/shows_/$showId'
+      path: '/shows/$showId'
       fullPath: '/shows/$showId'
       preLoaderRoute: typeof ShowsShowIdRouteImport
-      parentRoute: typeof ShowsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/reserve/$showId_/payment': {
       id: '/reserve/$showId_/payment'
@@ -326,23 +326,25 @@ declare module '@tanstack/react-router' {
     }
     '/shows_/$showId/stats': {
       id: '/shows_/$showId/stats'
-      path: '/shows/$showId/stats'
+      path: '/stats'
       fullPath: '/shows/$showId/stats'
       preLoaderRoute: typeof ShowsShowIdStatsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ShowsShowIdRoute
     }
   }
 }
 
-interface ShowsRouteChildren {
-  ShowsShowIdRoute: typeof ShowsShowIdRoute
+interface ShowsShowIdRouteChildren {
+  ShowsShowIdStatsRoute: typeof ShowsShowIdStatsRoute
 }
 
-const ShowsRouteChildren: ShowsRouteChildren = {
-  ShowsShowIdRoute: ShowsShowIdRoute,
+const ShowsShowIdRouteChildren: ShowsShowIdRouteChildren = {
+  ShowsShowIdStatsRoute: ShowsShowIdStatsRoute,
 }
 
-const ShowsRouteWithChildren = ShowsRoute._addFileChildren(ShowsRouteChildren)
+const ShowsShowIdRouteWithChildren = ShowsShowIdRoute._addFileChildren(
+  ShowsShowIdRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -352,14 +354,23 @@ const rootRouteChildren: RootRouteChildren = {
   ImpressumRoute: ImpressumRoute,
   QrScannerRoute: QrScannerRoute,
   RentalsRoute: RentalsRoute,
-  ShowsRoute: ShowsRouteWithChildren,
+  ShowsRoute: ShowsRoute,
   ApiSplatRoute: ApiSplatRoute,
   PaymentFailureRoute: PaymentFailureRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   ReserveShowIdRoute: ReserveShowIdRoute,
+  ShowsShowIdRoute: ShowsShowIdRouteWithChildren,
   ReserveShowIdPaymentRoute: ReserveShowIdPaymentRoute,
-  ShowsShowIdStatsRoute: ShowsShowIdStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -66,7 +66,7 @@ const RouteComponent = () => {
   );
 };
 
-export const Route = createFileRoute("/shows/$showId")({
+export const Route = createFileRoute("/shows_/$showId")({
   // TanStack Query: prefetch the show into the cache during SSR / navigation.
   // The data is also returned so `head` can use it as loaderData; a 404 from
   // the API is translated into the router's notFound page.
