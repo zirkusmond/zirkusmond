@@ -27,7 +27,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { i18n } = useTranslation();
 
   return (
-    <html lang={i18n.language} suppressHydrationWarning>
+    <html lang={i18n.language} translate="no" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -62,6 +62,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         name: "viewport",
         content: "width=device-width, initial-scale=1",
+      },
+      {
+        name: "google",
+        content: "notranslate",
       },
       {
         title: "Zirkus Mond",
