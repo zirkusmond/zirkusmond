@@ -3,7 +3,6 @@
 import uuid
 
 import django.db.models.deletion
-import phonenumber_field.modelfields
 from django.db import migrations, models
 
 
@@ -67,9 +66,7 @@ class Migration(migrations.Migration):
                 ("billing_email", models.EmailField(blank=True, max_length=254)),
                 (
                     "billing_phone",
-                    phonenumber_field.modelfields.PhoneNumberField(
-                        blank=True, max_length=128, region=None
-                    ),
+                    models.CharField(blank=True, max_length=128),
                 ),
                 ("customer_ip_address", models.GenericIPAddressField(blank=True, null=True)),
                 ("extra_data", models.TextField(blank=True, default="")),
