@@ -34,19 +34,21 @@ export const QRScannerComponent = ({ events }: QRScannerComponentProps) => {
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isProcessingRef = useRef(false);
+  const hasAutoSelectedRef = useRef(false);
   const successSoundRef = useRef<HTMLAudioElement | null>(null);
   const errorSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  // Auto-select today's event
+  // Auto-select today's event once, but don't override an explicit deselection
   useEffect(() => {
-    if (events.length > 0 && !selectedEvent) {
-      const today = new Date().toISOString().split("T")[0];
-      const todayEvent = events.find((event) => event.begin.includes(today));
-      if (todayEvent) {
-        setSelectedEvent(todayEvent);
-      }
+    if (hasAutoSelectedRef.current || events.length === 0) return;
+    hasAutoSelectedRef.current = true;
+
+    const today = new Date().toISOString().split("T")[0];
+    const todayEvent = events.find((event) => event.begin.includes(today));
+    if (todayEvent) {
+      setSelectedEvent(todayEvent);
     }
-  }, [events, selectedEvent]);
+  }, [events]);
 
   // Unlock audio on user interaction
   const unlockAudio = () =>
