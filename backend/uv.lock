@@ -768,37 +768,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-payments"
-version = "3.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-phonenumber-field", extra = ["phonenumberslite"] },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ad/8c/181e8ece87c0d54f801b530e0bfaad8dfd040522d716214bbe5abef07300/django_payments-3.1.0.tar.gz", hash = "sha256:a5e150234314f245106c1ec1a79902264b4c1c4452c9b0e837df57587d5adc5e", size = 111904, upload-time = "2025-08-13T12:09:39.831Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/18/151858af47016d2e4648787458b09f6c814fdb29fe402c32f087055daf48/django_payments-3.1.0-py3-none-any.whl", hash = "sha256:47ed8bb199d2e5eff09cfe9af29392c47a06ed25cddf37a33d3b7c97f995e1d2", size = 150788, upload-time = "2025-08-13T12:09:32.707Z" },
-]
-
-[[package]]
-name = "django-phonenumber-field"
-version = "8.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/0f/82/479b070133cd493cad0f59bc04d6dd3e2e88b2c1f48cd6f54fd897225199/django_phonenumber_field-8.5.0.tar.gz", hash = "sha256:19c606fda7bb25630c4913f7ac83c1824186ea17e2e4c6dc9aa9373e8f5843c5", size = 46311, upload-time = "2026-07-23T12:24:16.471Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/14/4e33f4055afbf517ac3223371334f6f3226beecc92b781131a6eb6eeda1c/django_phonenumber_field-8.5.0-py3-none-any.whl", hash = "sha256:a6dd71250f7fd0724aad995df01bdb4ac457a65622f120d0d623792fe8283798", size = 69514, upload-time = "2026-07-23T12:24:14.955Z" },
-]
-
-[package.optional-dependencies]
-phonenumberslite = [
-    { name = "phonenumberslite" },
-]
-
-[[package]]
 name = "django-stubs"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1732,15 +1701,6 @@ wheels = [
 ]
 
 [[package]]
-name = "phonenumberslite"
-version = "9.0.39"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e5/ba/e6ce17d4b551685016b84df859e752b0ef6dcc7260742752b5b8731d8cc4/phonenumberslite-9.0.39.tar.gz", hash = "sha256:99b87ac617cb68faf828e2b6d88a204b3cf04a5e71c77aae6a85e1a9195f887a", size = 292866, upload-time = "2026-09-10T11:26:34.73Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/16/f709f28eec10500c6b10fab27eb231c16bbef25ba2643f194750b7501484/phonenumberslite-9.0.39-py2.py3-none-any.whl", hash = "sha256:a571a691c01b3c3e5c4e2b61f783ce41d4fdeb568d96269510b964f543bbef14", size = 473135, upload-time = "2026-09-10T11:26:33.134Z" },
-]
-
-[[package]]
 name = "pillow"
 version = "12.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2618,7 +2578,6 @@ dependencies = [
     { name = "django-anymail" },
     { name = "django-cors-headers" },
     { name = "django-extensions" },
-    { name = "django-payments" },
     { name = "django-tinymce" },
     { name = "django-unfold" },
     { name = "djangorestframework" },
@@ -2654,7 +2613,6 @@ requires-dist = [
     { name = "django-anymail", specifier = "==15.0" },
     { name = "django-cors-headers", specifier = ">=4.9.0" },
     { name = "django-extensions", specifier = "==4.1" },
-    { name = "django-payments", specifier = "==3.1.0" },
     { name = "django-tinymce", specifier = "==5.0.0" },
     { name = "django-unfold", specifier = ">=0.97.0" },
     { name = "djangorestframework", specifier = ">=3.17.1" },

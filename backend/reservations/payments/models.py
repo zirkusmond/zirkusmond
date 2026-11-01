@@ -1,109 +1,13 @@
 import uuid
-from collections.abc import Iterator
 from decimal import Decimal
 from typing import TYPE_CHECKING, Self
 
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
-from django.urls import reverse
-from payments import PurchasedItem
-from payments.models import BasePayment
 
 if TYPE_CHECKING:
     from reservations.models import Reservation
-
-
-# old payment model using Django Payments.
-class ReservationPayment(BasePayment):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reservation = models.ForeignKey(
-        "reservations.Reservation", null=True, on_delete=models.SET_NULL
-    )
-    custom_ticket_price = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Custom price selected by user (sliding scale)"
-    )
-
-    def get_metadata(self) -> dict[str, str]:
-        return {
-            "event": str(self.reservation),
-            "reservation_id": str(self.id),
-        }
-
-    def get_failure_url(self) -> str:
-        protocol = "https" if settings.PAYMENT_USES_SSL else "http"
-        return f"{protocol}://{settings.PAYMENT_HOST}/payments/{self.pk}/failure"
-
-    def get_success_url(self) -> str:
-        protocol = "https" if settings.PAYMENT_USES_SSL else "http"
-        return f"{protocol}://{settings.PAYMENT_HOST}/payments/{self.pk}/success"
-
-    def get_process_url(self) -> str:
-        protocol = "https" if settings.PAYMENT_USES_SSL else "http"
-        return f"{protocol}://{settings.PAYMENT_HOST}" + reverse(
-            "process_payment", kwargs={"token": self.token}
-        )
-
-    def get_purchased_items(self) -> Iterator[PurchasedItem]:
-        if self.reservation is None or self.reservation.event is None:
-            return
-        show = self.reservation.event.show
-        if show is None:
-            return
-        yield PurchasedItem(
-            name=f"{show.title} {self.reservation.event}",
-            sku=self.reservation.event.pk,
-            quantity=self.reservation.ticket_count(),
-            price=self.ticket_price,
-            currency="EUR",
-        )
-
-    @property
-    def ticket_price(self) -> Decimal:
-        if self.custom_ticket_price is not None:
-            return Decimal(self.custom_ticket_price)
-        show = self.reservation.event.show if self.reservation and self.reservation.event else None
-        price = (show.base_ticket_price or show.reservation_price) if show else None
-        if not price:
-            price = Decimal(15.0)
-        return price
-
-    def validate_custom_price(self, base_price: int | None) -> bool:
-        if self.custom_ticket_price is None:
-            return True
-        show = self.reservation.event.show if self.reservation and self.reservation.event else None
-        if show is None:
-            return False
-        min_price = show.get_effective_min_price(base_price)
-        max_price = show.get_effective_max_price(base_price)
-        return min_price <= self.custom_ticket_price <= max_price
-
-    @staticmethod
-    def from_reservation(
-        reservation: "Reservation", variant: str, custom_ticket_price: Decimal | None = None
-    ) -> "ReservationPayment":
-        payment = ReservationPayment(
-            reservation=reservation,
-            variant=variant,
-            billing_email=reservation.email,
-            description=f"Reservations for {reservation.event}",
-            currency="EUR",
-            custom_ticket_price=custom_ticket_price,
-        )
-        payment.total = reservation.ticket_count() * payment.ticket_price
-        return payment
-
-    @admin.display
-    def ticket_count(self) -> int:
-        if self.reservation is None:
-            return 0
-        return self.reservation.ticket_count()
-
-    @admin.display
-    def event(self) -> str:
-        if self.reservation is None:
-            return "—"
-        return f"{self.reservation.event}"
 
 
 class Payment(models.Model):

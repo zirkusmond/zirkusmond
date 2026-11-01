@@ -3,7 +3,6 @@ name = "zirkusmond"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-    "django-payments==3.1.0",
     "jupyter_nbextensions_configurator==0.6.4",
     "django_extensions==4.1",
     "xlsxwriter==3.2.9",

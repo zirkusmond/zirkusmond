@@ -6,12 +6,11 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.template import Context, Template
 from django.template.response import TemplateResponse
 from django.utils import timezone
-from payments import PaymentStatus
 from unfold.admin import ModelAdmin
 
 from events.forms import EmailTextForm
 from reservations import emails, tasks
-from reservations.models import Reservation, ReservationPayment
+from reservations.models import Reservation
 from reservations.payments.models import Payment
 
 
@@ -71,104 +70,6 @@ def send_email_to_reservants(
         "selected_action": request.POST.getlist("_selected_action"),
     }
     return TemplateResponse(request, "admin/send_email.html", context)
-
-
-class ReservationPaymentStatusFilter(admin.SimpleListFilter):
-    title = "Status"
-    parameter_name = "status"
-
-    def lookups(self, request: HttpRequest, model_admin: admin.ModelAdmin) -> list[tuple[str, str]]:
-        return [
-            (PaymentStatus.WAITING, "Waiting"),
-            (PaymentStatus.CONFIRMED, "Confirmed"),
-            (PaymentStatus.REJECTED, "Rejected"),
-            (PaymentStatus.REFUNDED, "Refunded"),
-            (PaymentStatus.ERROR, "Error"),
-        ]
-
-    def queryset(
-        self, request: HttpRequest, queryset: QuerySet[ReservationPayment]
-    ) -> QuerySet[ReservationPayment]:
-        if self.value():
-            return queryset.filter(status=self.value())
-        return queryset
-
-
-class ReservationPaymentEventFilter(admin.SimpleListFilter):
-    title = "Event"
-    parameter_name = "event"
-
-    def lookups(self, request: HttpRequest, model_admin: admin.ModelAdmin) -> list[tuple[str, str]]:
-        return [
-            ("upcoming", "Upcoming"),
-            ("past", "Past"),
-        ]
-
-    def queryset(
-        self, request: HttpRequest, queryset: QuerySet[ReservationPayment]
-    ) -> QuerySet[ReservationPayment]:
-        now = timezone.now()
-        if self.value() == "upcoming":
-            return queryset.filter(reservation__event__begin__gte=now)
-        elif self.value() == "past":
-            return queryset.filter(reservation__event__begin__lt=now)
-        return queryset
-
-
-class ReservationPaymentAdmin(ModelAdmin):
-    list_display = [
-        "reservation",
-        "status",
-        "ticket_count",
-        "ticket_price",
-        "confirmed_total",
-        "variant",
-        "event",
-        "created",
-    ]
-    ordering = ["-created"]
-    date_hierarchy = "created"
-    list_filter = (ReservationPaymentStatusFilter, "variant", ReservationPaymentEventFilter)
-    search_fields = [
-        "reservation__first_name",
-        "reservation__last_name",
-        "billing_email",
-    ]
-    readonly_fields = ["reservation"]
-    actions = ["resend_confirmation_mail", "send_to_reservants"]
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[ReservationPayment]:
-        queryset = super().get_queryset(request)
-        reservation_queryset = Reservation.objects.select_related("event__show").annotate(
-            annotated_guest_count=Count("guests", distinct=True)
-        )
-        return queryset.prefetch_related(Prefetch("reservation", queryset=reservation_queryset))
-
-    @admin.display(description="Total")
-    def confirmed_total(self, obj: ReservationPayment) -> str:
-        if obj.status != PaymentStatus.CONFIRMED:
-            return "€ 0.00"
-        return f"€ {obj.total:.2f}"
-
-    @admin.action(description="Resend confirmation E-Mail")
-    def resend_confirmation_mail(
-        self, request: HttpRequest, queryset: QuerySet[ReservationPayment]
-    ) -> None:
-        for payment in queryset:
-            if payment.reservation:
-                emails.send_confirmation_mail(payment.reservation)
-
-    @admin.action(description="Send mail to Reservants")
-    def send_to_reservants(
-        self, request: HttpRequest, queryset: QuerySet[ReservationPayment]
-    ) -> HttpResponseRedirect | TemplateResponse:
-        dicts = [
-            reservation_to_dict(payment.reservation) for payment in queryset if payment.reservation
-        ]
-        return send_email_to_reservants(request, dicts, self)
-
-
-admin.site.register(ReservationPayment, ReservationPaymentAdmin)
 
 
 class PaymentStatusFilter(admin.SimpleListFilter):

@@ -5,17 +5,15 @@ from io import BytesIO
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from django.contrib.admin.sites import AdminSite
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from PIL import Image
 from rest_framework.test import APIClient
 
 from events.models import Event
 from reservations.models import Guest, Reservation
-from reservations.payments.admin import ReservationPaymentAdmin
-from reservations.payments.models import Payment, ReservationPayment
+from reservations.payments.models import Payment
 from shows.models import Show
 
 # ---------------------------------------------------------------------------
@@ -564,36 +562,3 @@ class StripeReturnViewTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("payment/failure", response.url)
-
-
-# ---------------------------------------------------------------------------
-# ReservationPaymentAdmin changelist query count (N+1 regression guard)
-# ---------------------------------------------------------------------------
-
-
-class ReservationPaymentAdminQueryCountTest(TestCase):
-    def setUp(self) -> None:
-        self.show = make_show(base_ticket_price=15)
-        self.event = make_event(self.show)
-        self.admin = ReservationPaymentAdmin(ReservationPayment, AdminSite())
-
-    def test_changelist_query_count_does_not_scale_with_rows(self) -> None:
-        for i in range(3):
-            reservation = make_reservation(self.event, email=f"r{i}@example.com")
-            Guest.objects.create(reservation=reservation, first_name="A", last_name="B")
-            ReservationPayment.objects.create(
-                reservation=reservation,
-                variant="default",
-                billing_email=reservation.email,
-                description="test",
-                currency="EUR",
-                total=Decimal("15.00"),
-            )
-
-        queryset = self.admin.get_queryset(RequestFactory().get("/"))
-        with self.assertNumQueries(2):
-            for payment in queryset:
-                str(payment.reservation)
-                payment.ticket_count()
-                payment.event()
-                _ = payment.ticket_price

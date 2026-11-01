@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party apps
     "corsheaders",
-    "payments",
     "anymail",
     "tinymce",
     "rest_framework",
@@ -92,8 +91,6 @@ TEMPLATES = [
 ]
 
 ASGI_APPLICATION = "config.asgi.application"
-
-PAYMENT_MODEL = "reservations.ReservationPayment"
 
 # Stripe configuration
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY") or os.environ.get(

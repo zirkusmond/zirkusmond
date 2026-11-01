@@ -357,9 +357,3 @@ You can then trigger or replay events from Stripe CLI or the Stripe dashboard.
 - `backend/reservations/views.py`
 - `frontend/src/lib/payments.ts`
 - `frontend/src/components/zirkusmond/reserve/components/StripePaymentForm.tsx`
-
-## Legacy note
-
-Some legacy `ReservationPayment` / `django-payments` code may still exist in the repository for
-historical data, migrations, or admin compatibility. It is not the active customer payment flow.
-New payment work should target the `Payment` + Stripe `PaymentIntent` path documented above.

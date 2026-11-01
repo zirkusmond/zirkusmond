@@ -102,9 +102,7 @@ All active payments run through Stripe directly via the custom `Payment` model i
   refund emails for refunded payments; a Celery task marks stale `PENDING` payments as
   `ABANDONED`.
 
-`docs/stripe-payment-system.md` documents the current Stripe PaymentIntent flow. Legacy
-`ReservationPayment` / `django-payments` code may still exist in the repository for historical
-reasons, but it is not part of the active payment path and should not be used for new work.
+`docs/stripe-payment-system.md` documents the current Stripe PaymentIntent flow.
 
 ### Frontend: TanStack Start + React 19
 

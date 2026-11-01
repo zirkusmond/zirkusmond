@@ -128,9 +128,7 @@ The current flow is:
 4. `StripeWebhookView` updates the payment to `completed`, `failed`, or `refunded`
 5. signals/tasks send confirmation or refund emails and cleanup stale pending payments
 
-See `docs/stripe-payment-system.md` for the full payment-flow documentation. Legacy
-`ReservationPayment` / `django-payments` code may still exist in the repo for historical reasons,
-but it is no longer the active payment path.
+See `docs/stripe-payment-system.md` for the full payment-flow documentation.
 
 ## Testing and CI
 
