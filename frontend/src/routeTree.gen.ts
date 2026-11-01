@@ -23,7 +23,7 @@ import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as ReserveShowIdRouteImport } from './routes/reserve.$showId'
 import { Route as ShowsShowIdRouteImport } from './routes/shows_.$showId'
 import { Route as ReserveShowIdPaymentRouteImport } from './routes/reserve.$showId_.payment'
-import { Route as ShowsShowIdStatsRouteImport } from './routes/shows_.$showId.stats'
+import { Route as ShowsShowIdStatsRouteImport } from './routes/shows_.$showId_.stats'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -96,9 +96,9 @@ const ReserveShowIdPaymentRoute = ReserveShowIdPaymentRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShowsShowIdStatsRoute = ShowsShowIdStatsRouteImport.update({
-  id: '/stats',
-  path: '/stats',
-  getParentRoute: () => ShowsShowIdRoute,
+  id: '/shows_/$showId_/stats',
+  path: '/shows/$showId/stats',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -114,7 +114,7 @@ export interface FileRoutesByFullPath {
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/reserve/$showId': typeof ReserveShowIdRoute
-  '/shows/$showId': typeof ShowsShowIdRouteWithChildren
+  '/shows/$showId': typeof ShowsShowIdRoute
   '/reserve/$showId/payment': typeof ReserveShowIdPaymentRoute
   '/shows/$showId/stats': typeof ShowsShowIdStatsRoute
 }
@@ -131,7 +131,7 @@ export interface FileRoutesByTo {
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/reserve/$showId': typeof ReserveShowIdRoute
-  '/shows/$showId': typeof ShowsShowIdRouteWithChildren
+  '/shows/$showId': typeof ShowsShowIdRoute
   '/reserve/$showId/payment': typeof ReserveShowIdPaymentRoute
   '/shows/$showId/stats': typeof ShowsShowIdStatsRoute
 }
@@ -149,9 +149,9 @@ export interface FileRoutesById {
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/reserve/$showId': typeof ReserveShowIdRoute
-  '/shows_/$showId': typeof ShowsShowIdRouteWithChildren
+  '/shows_/$showId': typeof ShowsShowIdRoute
   '/reserve/$showId_/payment': typeof ReserveShowIdPaymentRoute
-  '/shows_/$showId/stats': typeof ShowsShowIdStatsRoute
+  '/shows_/$showId_/stats': typeof ShowsShowIdStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -204,7 +204,7 @@ export interface FileRouteTypes {
     | '/reserve/$showId'
     | '/shows_/$showId'
     | '/reserve/$showId_/payment'
-    | '/shows_/$showId/stats'
+    | '/shows_/$showId_/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,8 +220,9 @@ export interface RootRouteChildren {
   PaymentFailureRoute: typeof PaymentFailureRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   ReserveShowIdRoute: typeof ReserveShowIdRoute
-  ShowsShowIdRoute: typeof ShowsShowIdRouteWithChildren
+  ShowsShowIdRoute: typeof ShowsShowIdRoute
   ReserveShowIdPaymentRoute: typeof ReserveShowIdPaymentRoute
+  ShowsShowIdStatsRoute: typeof ShowsShowIdStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -324,27 +325,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReserveShowIdPaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shows_/$showId/stats': {
-      id: '/shows_/$showId/stats'
-      path: '/stats'
+    '/shows_/$showId_/stats': {
+      id: '/shows_/$showId_/stats'
+      path: '/shows/$showId/stats'
       fullPath: '/shows/$showId/stats'
       preLoaderRoute: typeof ShowsShowIdStatsRouteImport
-      parentRoute: typeof ShowsShowIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ShowsShowIdRouteChildren {
-  ShowsShowIdStatsRoute: typeof ShowsShowIdStatsRoute
-}
-
-const ShowsShowIdRouteChildren: ShowsShowIdRouteChildren = {
-  ShowsShowIdStatsRoute: ShowsShowIdStatsRoute,
-}
-
-const ShowsShowIdRouteWithChildren = ShowsShowIdRoute._addFileChildren(
-  ShowsShowIdRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -359,8 +348,9 @@ const rootRouteChildren: RootRouteChildren = {
   PaymentFailureRoute: PaymentFailureRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   ReserveShowIdRoute: ReserveShowIdRoute,
-  ShowsShowIdRoute: ShowsShowIdRouteWithChildren,
+  ShowsShowIdRoute: ShowsShowIdRoute,
   ReserveShowIdPaymentRoute: ReserveShowIdPaymentRoute,
+  ShowsShowIdStatsRoute: ShowsShowIdStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

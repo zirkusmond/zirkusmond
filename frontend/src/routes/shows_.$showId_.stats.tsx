@@ -156,7 +156,7 @@ const RouteComponent = () => {
   );
 };
 
-export const Route = createFileRoute("/shows_/$showId/stats")({
+export const Route = createFileRoute("/shows_/$showId_/stats")({
   validateSearch: validateShowStatsSearch,
   loaderDeps: ({ search }) => ({ token: search.token }),
   loader: async ({ context: { queryClient }, params, deps, preload }) => {
