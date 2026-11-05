@@ -16,6 +16,7 @@ import CookieConsentBanner from "#/components/zirkusmond/general/CookieConsentBa
 
 import appCss from "../styles.css?url";
 import Footer from "#/components/zirkusmond/general/Footer";
+import { organizationJsonLd, websiteJsonLd } from "#/lib/structuredData.ts";
 
 // Types the router context created in router.tsx, so every route loader gets
 // a typed `context.queryClient` for prefetching TanStack Query data.
@@ -75,6 +76,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content:
           "Zirkus Mond – Dein Zirkus in Berlin! Entdecke unser Programm: Live Shows, Events, Community und zeitgenössische Zirkuskunst im Herzen Berlins.",
       },
+      { "script:ld+json": organizationJsonLd() },
+      { "script:ld+json": websiteJsonLd() },
     ],
     links: [
       {

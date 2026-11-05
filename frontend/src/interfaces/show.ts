@@ -5,6 +5,7 @@ export interface ShowCard {
   title: string;
   cardImage: string;
   eventDates: string[];
+  eventDatesIso: string[];
   soldOut: boolean;
 }
 
@@ -25,6 +26,11 @@ export interface ShowEvent {
   id: string;
   timeAndDate: string;
   admissionTime: string;
+  begin: string;
+  admission: string;
+  reservationCapacity: number;
+  remainingCapacity: number;
+  reservationOpen: boolean;
   soldOut: boolean;
 }
 
@@ -37,9 +43,12 @@ export interface Show {
   bannerImage?: string;
   videoLink?: string;
   websiteLink?: string;
+  currency?: string;
   baseTicketPrice?: number;
   minTicketPrice?: number;
   maxTicketPrice?: number;
+  effectiveMinPrice?: number | null;
+  effectiveMaxPrice?: number | null;
   reservationPrice?: number;
   thirdPartyReservation?: boolean;
   thirdPartyReservationLink?: string;

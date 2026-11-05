@@ -1,3 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /mondmin/
+Disallow: /api/
+Disallow: /qr-scanner
+Disallow: /reserve/
+Disallow: /payment/
+
+Sitemap: https://zirkusmond.de/sitemap.xml

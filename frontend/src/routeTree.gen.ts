@@ -14,9 +14,11 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as ImpressumRouteImport } from './routes/impressum'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as QrScannerRouteImport } from './routes/qr-scanner'
 import { Route as RentalsRouteImport } from './routes/rentals'
 import { Route as ShowsRouteImport } from './routes/shows'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as PaymentFailureRouteImport } from './routes/payment.failure'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
@@ -50,6 +52,11 @@ const ImpressumRoute = ImpressumRouteImport.update({
   path: '/impressum',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QrScannerRoute = QrScannerRouteImport.update({
   id: '/qr-scanner',
   path: '/qr-scanner',
@@ -63,6 +70,11 @@ const RentalsRoute = RentalsRouteImport.update({
 const ShowsRoute = ShowsRouteImport.update({
   id: '/shows',
   path: '/shows',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -107,9 +119,11 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/qr-scanner': typeof QrScannerRoute
   '/rentals': typeof RentalsRoute
   '/shows': typeof ShowsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/$': typeof ApiSplatRoute
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
@@ -124,9 +138,11 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/qr-scanner': typeof QrScannerRoute
   '/rentals': typeof RentalsRoute
   '/shows': typeof ShowsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/$': typeof ApiSplatRoute
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
@@ -142,9 +158,11 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/qr-scanner': typeof QrScannerRoute
   '/rentals': typeof RentalsRoute
   '/shows': typeof ShowsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/$': typeof ApiSplatRoute
   '/payment/failure': typeof PaymentFailureRoute
   '/payment/success': typeof PaymentSuccessRoute
@@ -161,9 +179,11 @@ export interface FileRouteTypes {
     | '/contact'
     | '/datenschutz'
     | '/impressum'
+    | '/llms.txt'
     | '/qr-scanner'
     | '/rentals'
     | '/shows'
+    | '/sitemap.xml'
     | '/api/$'
     | '/payment/failure'
     | '/payment/success'
@@ -178,9 +198,11 @@ export interface FileRouteTypes {
     | '/contact'
     | '/datenschutz'
     | '/impressum'
+    | '/llms.txt'
     | '/qr-scanner'
     | '/rentals'
     | '/shows'
+    | '/sitemap.xml'
     | '/api/$'
     | '/payment/failure'
     | '/payment/success'
@@ -195,9 +217,11 @@ export interface FileRouteTypes {
     | '/contact'
     | '/datenschutz'
     | '/impressum'
+    | '/llms.txt'
     | '/qr-scanner'
     | '/rentals'
     | '/shows'
+    | '/sitemap.xml'
     | '/api/$'
     | '/payment/failure'
     | '/payment/success'
@@ -213,9 +237,11 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DatenschutzRoute: typeof DatenschutzRoute
   ImpressumRoute: typeof ImpressumRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   QrScannerRoute: typeof QrScannerRoute
   RentalsRoute: typeof RentalsRoute
   ShowsRoute: typeof ShowsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiSplatRoute: typeof ApiSplatRoute
   PaymentFailureRoute: typeof PaymentFailureRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
@@ -262,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImpressumRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/qr-scanner': {
       id: '/qr-scanner'
       path: '/qr-scanner'
@@ -281,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/shows'
       fullPath: '/shows'
       preLoaderRoute: typeof ShowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -341,9 +381,11 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DatenschutzRoute: DatenschutzRoute,
   ImpressumRoute: ImpressumRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   QrScannerRoute: QrScannerRoute,
   RentalsRoute: RentalsRoute,
   ShowsRoute: ShowsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiSplatRoute: ApiSplatRoute,
   PaymentFailureRoute: PaymentFailureRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,

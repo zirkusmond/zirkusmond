@@ -1,6 +1,6 @@
 import shutil
 import tempfile
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from io import BytesIO
 from typing import Any
@@ -405,6 +405,64 @@ class SiteViewsTest(TestCase):
         titles = [s["title"] for s in data["upcoming_shows"]]
         self.assertIn("Public", titles)
         self.assertNotIn("Private", titles)
+
+
+class ShowApiMetadataTest(TestCase):
+    """The public show API exposes machine-readable dates, prices and capacity."""
+
+    def setUp(self) -> None:
+        self.show = make_show(
+            title="Metadata Show",
+            base_ticket_price=15,
+            min_ticket_price=10,
+            max_ticket_price=25,
+        )
+        self.event = make_event(self.show)
+
+    def test_show_detail_has_machine_readable_event_fields(self) -> None:
+        reservation = make_reservation(self.event)
+        make_payment(reservation)
+
+        response = self.client.get(f"/shows/{self.show.pk}")
+
+        self.assertEqual(response.status_code, 200)
+        show = response.json()["show"]
+        event = show["upcoming_events"][0]
+
+        self.assertEqual(datetime.fromisoformat(event["begin"]), self.event.begin)
+        self.assertEqual(datetime.fromisoformat(event["admission"]), self.event.admission)
+        self.assertEqual(event["reservation_capacity"], 150)
+        self.assertEqual(event["remaining_capacity"], 149)
+
+    def test_show_detail_exposes_currency_and_effective_prices(self) -> None:
+        response = self.client.get(f"/shows/{self.show.pk}")
+
+        show = response.json()["show"]
+
+        self.assertEqual(show["currency"], "EUR")
+        self.assertEqual(show["effective_min_price"], 10)
+        self.assertEqual(show["effective_max_price"], 25)
+
+    def test_show_detail_uses_reservation_price_when_set(self) -> None:
+        show = make_show(
+            title="Reservation Price Show",
+            base_ticket_price=None,
+            reservation_price=8,
+        )
+        make_event(show)
+
+        response = self.client.get(f"/shows/{show.pk}")
+
+        data = response.json()["show"]
+        self.assertEqual(data["effective_min_price"], 8)
+        self.assertEqual(data["effective_max_price"], 8)
+
+    def test_show_list_has_iso_event_dates(self) -> None:
+        response = self.client.get("/shows/")
+
+        show = response.json()["upcoming_shows"][0]
+
+        self.assertEqual(show["event_dates_iso"], [self.event.begin.isoformat()])
 
 
 # ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import EventsSection from "#/components/zirkusmond/home/EventsSection";
 import PageContainer from "#/components/zirkusmond/general/PageContainer";
 import { allShowsQueryOptions } from "#/lib/api.ts";
+import { showListJsonLd } from "#/lib/structuredData.ts";
 
 const RouteComponent = () => {
   // TanStack Query: reads the cache entry the loader ensured; no loading state.
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/shows")({
       ...allShowsQueryOptions({ preload }),
       staleTime: "static",
     }),
-  head: () => ({
+  head: ({ loaderData }) => ({
     meta: [
       { title: "Zirkus Mond – Shows & Events" },
       {
@@ -36,6 +37,9 @@ export const Route = createFileRoute("/shows")({
         content:
           "Zirkus Shows Berlin, Zirkus Events Berlin, Live Shows Berlin, Trapez, Akrobatik Berlin, Cabaret, Varieté, Physical Theatre, Familien Events Berlin",
       },
+      ...(loaderData
+        ? [{ "script:ld+json": showListJsonLd(loaderData.upcomingShows) }]
+        : []),
     ],
   }),
   component: RouteComponent,

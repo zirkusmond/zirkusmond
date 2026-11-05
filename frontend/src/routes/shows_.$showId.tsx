@@ -8,6 +8,7 @@ import { ReserveButton } from "#/components/zirkusmond/show/ReserveButton";
 import TimeDetails from "#/components/zirkusmond/event/TimeDetails";
 import { Button } from "#/components/ui/button.tsx";
 import { ApiError, showQueryOptions } from "#/lib/api.ts";
+import { plainText, showJsonLd } from "#/lib/structuredData.ts";
 import NotFound from "#/components/zirkusmond/general/NotFound";
 import NavigationButtonWrapper from "#/components/zirkusmond/general/NavigationButtonWrapper";
 import { useTranslation } from "react-i18next";
@@ -82,7 +83,16 @@ export const Route = createFileRoute("/shows_/$showId")({
     }
   },
   head: ({ loaderData }) => ({
-    meta: loaderData ? [{ title: `Zirkus Mond - ${loaderData.title}` }] : [],
+    meta: loaderData
+      ? [
+          { title: `Zirkus Mond - ${loaderData.title}` },
+          {
+            name: "description",
+            content: plainText(loaderData.description).slice(0, 160),
+          },
+          { "script:ld+json": showJsonLd(loaderData) },
+        ]
+      : [],
   }),
   component: RouteComponent,
   notFoundComponent: () => <NotFound entityName="Show" />,
