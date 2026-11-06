@@ -98,12 +98,7 @@ UNFOLD = {
                         "link": "/mondmin/reservations/guest/",
                     },
                     {
-                        "title": "Payments (Old)",
-                        "icon": "payment",
-                        "link": "/mondmin/reservations/reservationpayment/",
-                    },
-                    {
-                        "title": "Payments (New)",
+                        "title": "Payments",
                         "icon": "credit_card",
                         "link": "/mondmin/reservations/payment/",
                     },
