@@ -1,14 +1,24 @@
 import { Link } from "@tanstack/react-router";
 
-export default function Logo() {
+interface LogoProps {
+  asLink?: boolean;
+}
+
+export default function Logo({ asLink = true }: LogoProps) {
+  const image = (
+    <img
+      className="h-[56.25px] w-[56.25px] object-cover"
+      src="/images/logos/logo.webp"
+      alt="Zirkusmond logo"
+      width={100}
+    />
+  );
+
+  if (!asLink) return image;
+
   return (
     <Link to="/" className="flex justify-center">
-      <img
-        className="h-[56.25px] w-[56.25px] object-cover"
-        src="/images/logos/logo.webp"
-        alt="Zirkusmond logo"
-        width={100}
-      />
+      {image}
     </Link>
   );
 }

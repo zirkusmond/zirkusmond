@@ -43,7 +43,11 @@ export default function MobileNav({ items }: MobileNavProps) {
       >
         <SheetHeader className="flex flex-row justify-between">
           <SheetTitle className="text-primary text-4xl max-w-1/2">
-            <Logo />
+            <SheetClose asChild>
+              <Link to="/" className="flex max-w-16">
+                <Logo asLink={false} />
+              </Link>
+            </SheetClose>
           </SheetTitle>
           <SheetClose className="max-w-16">
             <XIcon className="text-primary" width={64} height={64} />
