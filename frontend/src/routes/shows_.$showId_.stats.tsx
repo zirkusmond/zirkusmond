@@ -123,7 +123,7 @@ const RouteComponent = () => {
                 </tr>
               )}
             </tbody>
-            {stats.events.length > 0 && (
+            {stats.events.length > 1 && (
               <tfoot className="block md:table-footer-group">
                 <tr className="mt-4 block  border border-white/20 p-4 font-semibold text-lg md:mt-0 md:table-row md:ne md:border-0 md:border-t md:border-white/40">
                   <td className="block pb-2 md:table-cell md:pb-0 md:pr-4 md:pt-3">
