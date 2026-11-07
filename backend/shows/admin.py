@@ -5,7 +5,6 @@ from typing import Any
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
-from django.core import signing
 from django.core.mail import send_mail
 from django.db.models import (
     Count,
@@ -28,7 +27,6 @@ from unfold.admin import ModelAdmin
 from unfold.widgets import UnfoldAdminEmailInputWidget
 
 from events.models import Event
-from events.stats import STATS_TOKEN_SALT
 from reservations.models import Guest, Payment
 
 from .models import PastShow, Show, UnscheduledShow, UpcomingShow
@@ -193,6 +191,17 @@ class ShowAdmin(ModelAdmin):
     ordering: list[str] = []
     default_ordering = [F("next_event_begin").desc(nulls_last=True), "-title"]
     inlines = [EventInline]
+    readonly_fields = ["sales_link"]
+
+    @admin.display(description="Sales link")
+    def sales_link(self, obj: Show) -> str:
+        if not obj.sales_url:
+            return "-"
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">{}</a>',
+            obj.sales_url,
+            obj.sales_url,
+        )
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Show]:
         queryset = super().get_queryset(request)
@@ -304,9 +313,7 @@ class UpcomingShowAdmin(ShowAdmin):
             messages.success(request, f"Access link sent to {email} for “{obj}”.")
 
     def _send_organiser_link(self, obj: UpcomingShow, email: str) -> None:
-        token = signing.dumps({"show_id": obj.pk}, salt=STATS_TOKEN_SALT)
-
-        sales_url = f"{settings.FRONTEND_URL}/shows/{obj.pk}/stats?token={token}"
+        sales_url = obj.sales_url
 
         send_mail(
             "Your show ticket sales link",

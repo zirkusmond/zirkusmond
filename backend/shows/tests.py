@@ -183,6 +183,22 @@ class ShowModelTest(TestCase):
     def test_lastmod_format(self) -> None:
         self.assertRegex(self.show.lastmod(), r"\d{4}-\d{2}-\d{2}")
 
+    def test_sales_token_generated_on_creation(self) -> None:
+        self.assertTrue(self.show.sales_token)
+
+    def test_sales_url_contains_show_and_token(self) -> None:
+        self.assertEqual(
+            self.show.sales_url,
+            f"{settings.FRONTEND_URL}/shows/{self.show.pk}/stats?token={self.show.sales_token}",
+        )
+
+    def test_sales_token_is_stable_across_saves(self) -> None:
+        token = self.show.sales_token
+        self.show.title = "Renamed"
+        self.show.save()
+        self.show.refresh_from_db()
+        self.assertEqual(self.show.sales_token, token)
+
     def test_sold_out_false_with_no_events(self) -> None:
         # Nothing to reserve yet is not the same as sold out
         self.assertFalse(self.show.sold_out())

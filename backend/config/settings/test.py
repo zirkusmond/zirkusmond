@@ -12,6 +12,7 @@ DATABASES = {
     }
 }
 SECRET_KEY = "test-secret-key-for-ci"
+FRONTEND_URL = "http://localhost:3000"
 PAYMENT_HOST = "localhost:8000"
 PAYMENT_USES_SSL = False
 

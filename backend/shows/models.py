@@ -1,7 +1,9 @@
 from datetime import timedelta
 from typing import TYPE_CHECKING, ClassVar
 
+from django.conf import settings
 from django.contrib import admin
+from django.core import signing
 from django.db import models
 from django.utils import timezone
 from tinymce import models as tinymce_models
@@ -31,6 +33,7 @@ class Show(models.Model):
     third_party_reservation_link = models.CharField(
         max_length=255, blank=True, help_text="External link to reserve tickets"
     )
+    sales_token = models.CharField(max_length=255, blank=True, editable=False)
     last_modified = models.DateTimeField(auto_now=True)
 
     reservation_price = models.PositiveIntegerField(
@@ -80,6 +83,12 @@ class Show(models.Model):
     def lastmod(self) -> str:
         return self.last_modified.strftime("%Y-%m-%d")
 
+    @property
+    def sales_url(self) -> str:
+        if not self.sales_token:
+            return ""
+        return f"{settings.FRONTEND_URL}/shows/{self.pk}/stats?token={self.sales_token}"
+
     CARD_IMAGE_MAX_WIDTH = 900
 
     def save(self, *args, **kwargs):
@@ -98,6 +107,11 @@ class Show(models.Model):
                 f"{self.banner_image.name.rsplit('.', 1)[0]}.webp", content, save=False
             )
         super().save(*args, **kwargs)
+        if not self.sales_token:
+            from events.stats import STATS_TOKEN_SALT
+
+            self.sales_token = signing.dumps({"show_id": self.pk}, salt=STATS_TOKEN_SALT)
+            super().save(update_fields=["sales_token"])
 
     @admin.display(boolean=True)
     def reservation_open(self) -> bool:
