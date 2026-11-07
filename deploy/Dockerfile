@@ -22,6 +22,12 @@ ENV VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 
+# Used only by the Sentry Vite plugin during `pnpm build` to upload source maps.
+# Kept as ARGs (not ENV) so the auth token isn't persisted in the image.
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+ARG SENTRY_AUTH_TOKEN
+
 # Build TanStack Start app
 RUN pnpm build
 
