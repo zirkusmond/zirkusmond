@@ -130,6 +130,18 @@ class ShowModelTest(TestCase):
         make_event(self.show, offset_days=-1)
         self.assertFalse(self.show.reservation_open())
 
+    def test_reservation_closed_false_with_no_events(self) -> None:
+        self.assertFalse(self.show.reservation_closed())
+
+    def test_reservation_closed_false_with_future_event(self) -> None:
+        make_event(self.show, offset_days=-1)
+        make_event(self.show, offset_days=5)
+        self.assertFalse(self.show.reservation_closed())
+
+    def test_reservation_closed_true_when_all_events_started(self) -> None:
+        make_event(self.show, offset_days=-1)
+        self.assertTrue(self.show.reservation_closed())
+
     def test_show_in_preview_true_for_public_with_future_event(self) -> None:
         make_event(self.show)
         self.assertTrue(self.show.show_in_preview())

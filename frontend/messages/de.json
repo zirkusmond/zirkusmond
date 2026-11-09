@@ -113,6 +113,7 @@
   "show_reserve": "Zur Reservierung",
   "show_buy_tickets": "Tickets kaufen",
   "show_reservations_not_open": "Reservierungen sind noch nicht geöffnet!",
+  "show_reservations_closed": "Reservierungen sind jetzt geschlossen!",
   "show_sold_out": "Ausverkauft! Es werden keine Tickets an der Abendkasse verkauft.",
 
   "not_found_title": "{entity} nicht gefunden",

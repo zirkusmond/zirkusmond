@@ -45,6 +45,8 @@ const RouteComponent = () => {
           <h4 className="text-center">{t("show_sold_out")}</h4>
         ) : show.reservationOpen ? (
           <ReserveButton show={show} />
+        ) : show.reservationClosed ? (
+          <h4 className="text-center">{t("show_reservations_closed")}</h4>
         ) : (
           <h4 className="text-center">{t("show_reservations_not_open")}</h4>
         )}

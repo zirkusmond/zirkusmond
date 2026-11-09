@@ -46,6 +46,7 @@ export interface Show {
   upcomingEvents: ShowEvent[];
   lastModified: string;
   reservationOpen: boolean;
+  reservationClosed: boolean;
   soldOut: boolean;
 }
 

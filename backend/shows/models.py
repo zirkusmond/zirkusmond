@@ -117,6 +117,11 @@ class Show(models.Model):
     def reservation_open(self) -> bool:
         return any(e.reservation_open() for e in self.events.all())
 
+    def reservation_closed(self) -> bool:
+        """True when the show has events but all of them have already begun."""
+        events = self.events.all()
+        return bool(events) and not self.future_events()
+
     @admin.display(boolean=True)
     def show_in_preview(self) -> bool:
         events = self.events.all()

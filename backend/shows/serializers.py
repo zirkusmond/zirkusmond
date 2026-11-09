@@ -38,5 +38,6 @@ class ShowDetailSerializer(ModelSerializer):
             "upcoming_events",
             "last_modified",
             "reservation_open",
+            "reservation_closed",
             "sold_out",
         ]
