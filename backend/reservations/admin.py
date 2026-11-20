@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterable
 from typing import Any
 
 from django import forms
@@ -11,7 +12,6 @@ from unfold.admin import ModelAdmin
 from events.models import Event
 from reservations import emails
 from reservations.models import Guest, Reservation
-from reservations.payments.models import Payment
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +69,7 @@ class ReservationAdmin(ModelAdmin):
         if not event_changed or obj.event is None:
             return
 
-        is_paid = Payment.objects.filter(reservation=obj, status=Payment.Status.COMPLETED).exists()
-
-        if not is_paid:
+        if not obj.has_completed_payment():
             return
 
         try:
@@ -136,8 +134,52 @@ class ReservationAdmin(ModelAdmin):
     def resend_confirmation_mail(
         self, request: HttpRequest, queryset: QuerySet[Reservation]
     ) -> None:
-        for reservation in queryset:
+        resend_confirmation_mails(self, request, queryset)
+
+
+def resend_confirmation_mails(
+    model_admin: admin.ModelAdmin, request: HttpRequest, reservations: Iterable[Reservation]
+) -> None:
+    """Send confirmation mails, but only for reservations that were actually paid.
+
+    Sending tickets for an unpaid (abandoned/pending/failed) reservation hands out QR codes
+    that look valid, so those are skipped and reported back to the admin user.
+    """
+    sent: list[Reservation] = []
+    skipped: list[Reservation] = []
+    failed: list[Reservation] = []
+    seen: set[Any] = set()
+    for reservation in reservations:
+        if reservation.pk in seen:
+            continue
+        seen.add(reservation.pk)
+        if not reservation.has_completed_payment():
+            skipped.append(reservation)
+            continue
+        try:
             emails.send_confirmation_mail(reservation)
+        except Exception:
+            logger.exception(f"Confirmation mail failed to send for {reservation.pk}")
+            failed.append(reservation)
+        else:
+            sent.append(reservation)
+
+    if sent:
+        model_admin.message_user(
+            request, f"Confirmation mail sent for {len(sent)} reservation(s).", messages.SUCCESS
+        )
+    if skipped:
+        names = ", ".join(f"{r} ({r.email})" for r in skipped)
+        model_admin.message_user(
+            request,
+            f"Not sent for {len(skipped)} reservation(s) without a completed payment: {names}.",
+            messages.WARNING,
+        )
+    if failed:
+        names = ", ".join(f"{r} ({r.email})" for r in failed)
+        model_admin.message_user(
+            request, f"Confirmation mail could not be sent for: {names}.", messages.ERROR
+        )
 
 
 class GuestAdmin(ModelAdmin):

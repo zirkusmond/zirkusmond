@@ -523,3 +523,140 @@ class GuestAdminQueryCountTest(TestCase):
         with self.assertNumQueries(2):
             for guest in queryset:
                 str(guest.reservation)
+
+
+# ---------------------------------------------------------------------------
+# Admin "resend confirmation mail" actions — must skip unpaid reservations
+# ---------------------------------------------------------------------------
+
+
+class ResendConfirmationMailActionTest(TestCase):
+    def setUp(self) -> None:
+        from reservations.payments.admin import PaymentAdmin
+
+        show = make_show()
+        event = make_event(show)
+        self.paid = make_reservation(event, email="paid@example.com")
+        self.abandoned = make_reservation(event, email="abandoned@example.com")
+        self.comp = make_reservation(event, email="comp@example.com")
+        self.paid_payment = self._payment(self.paid, Payment.Status.COMPLETED)
+        self.abandoned_payment = self._payment(self.abandoned, Payment.Status.ABANDONED)
+        self.reservation_admin = ReservationAdmin(Reservation, AdminSite())
+        self.payment_admin = PaymentAdmin(Payment, AdminSite())
+        self.user = User.objects.create_superuser("admin", "admin@example.com", "pw")
+        # the COMPLETED payment above sends its own mail through the post_save signal
+        mail.outbox.clear()
+
+    def _payment(self, reservation: Reservation, status: str) -> Payment:
+        return Payment.objects.create(
+            reservation=reservation, status=status, total=Decimal("75.00"), custom_ticket_price=25
+        )
+
+    def _request(self) -> Any:
+        request = RequestFactory().post("/")
+        request.user = self.user
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        return request
+
+    def _recipients(self) -> list[str]:
+        return [address for sent in mail.outbox for address in sent.to]
+
+    def test_reservation_action_sends_for_paid_reservation(self) -> None:
+        self.reservation_admin.resend_confirmation_mail(
+            self._request(), Reservation.objects.filter(pk=self.paid.pk)
+        )
+        self.assertEqual(self._recipients(), ["paid@example.com"])
+
+    def test_reservation_action_skips_abandoned_reservation(self) -> None:
+        self.reservation_admin.resend_confirmation_mail(
+            self._request(), Reservation.objects.filter(pk=self.abandoned.pk)
+        )
+        self.assertEqual(mail.outbox, [])
+
+    def test_reservation_action_skips_reservation_without_any_payment(self) -> None:
+        self.reservation_admin.resend_confirmation_mail(
+            self._request(), Reservation.objects.filter(pk=self.comp.pk)
+        )
+        self.assertEqual(mail.outbox, [])
+
+    def test_reservation_action_mixed_selection_only_mails_paid_and_warns(self) -> None:
+        request = self._request()
+        self.reservation_admin.resend_confirmation_mail(request, Reservation.objects.all())
+
+        self.assertEqual(self._recipients(), ["paid@example.com"])
+        warnings = [str(m) for m in request._messages if m.level == messages.WARNING]
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("abandoned@example.com", warnings[0])
+        self.assertIn("comp@example.com", warnings[0])
+
+    def test_payment_action_skips_abandoned_payment(self) -> None:
+        request = self._request()
+        self.payment_admin.resend_confirmation_mail(
+            request, Payment.objects.filter(pk=self.abandoned_payment.pk)
+        )
+        self.assertEqual(mail.outbox, [])
+        levels = [m.level for m in request._messages]
+        self.assertIn(messages.WARNING, levels)
+
+    def test_payment_action_sends_for_completed_payment(self) -> None:
+        self.payment_admin.resend_confirmation_mail(
+            self._request(), Payment.objects.filter(pk=self.paid_payment.pk)
+        )
+        self.assertEqual(self._recipients(), ["paid@example.com"])
+
+    def test_payment_action_sends_once_per_reservation(self) -> None:
+        self._payment(self.paid, Payment.Status.ABANDONED)
+        mail.outbox.clear()
+        self.payment_admin.resend_confirmation_mail(
+            self._request(), Payment.objects.filter(reservation=self.paid)
+        )
+        self.assertEqual(self._recipients(), ["paid@example.com"])
+
+    def test_send_failure_is_reported_and_not_raised(self) -> None:
+        request = self._request()
+        with patch(
+            "reservations.emails.send_confirmation_mail", side_effect=RuntimeError("smtp down")
+        ):
+            self.reservation_admin.resend_confirmation_mail(
+                request, Reservation.objects.filter(pk=self.paid.pk)
+            )
+        levels = [m.level for m in request._messages]
+        self.assertIn(messages.ERROR, levels)
+
+
+class ConfirmationMailPaymentBlockTest(TestCase):
+    def setUp(self) -> None:
+        show = make_show()
+        self.reservation = make_reservation(make_event(show))
+        mail.outbox.clear()
+
+    def _payment(self, status: str, total: str, price: int) -> Payment:
+        return Payment.objects.create(
+            reservation=self.reservation,
+            status=status,
+            total=Decimal(total),
+            custom_ticket_price=price,
+        )
+
+    def test_price_block_uses_completed_payment_not_newer_abandoned_one(self) -> None:
+        from reservations import emails
+
+        self._payment(Payment.Status.COMPLETED, "20.00", 20)
+        self._payment(Payment.Status.ABANDONED, "99.00", 99)
+        mail.outbox.clear()
+
+        emails.send_confirmation_mail(self.reservation)
+
+        body = mail.outbox[0].body
+        self.assertIn("Total paid: 20.00 EUR", body)
+        self.assertNotIn("99.00", body)
+
+    def test_no_price_block_without_completed_payment(self) -> None:
+        from reservations import emails
+
+        self._payment(Payment.Status.ABANDONED, "75.00", 25)
+
+        emails.send_confirmation_mail(self.reservation)
+
+        self.assertNotIn("Total paid", mail.outbox[0].body)

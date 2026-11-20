@@ -22,6 +22,9 @@ class Reservation(models.Model):
             return self.annotated_guest_count + 1
         return self.guests.count() + 1
 
+    def has_completed_payment(self) -> bool:
+        return self.payment_set.filter(status=Payment.Status.COMPLETED).exists()
+
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
 

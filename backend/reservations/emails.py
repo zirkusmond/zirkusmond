@@ -96,7 +96,11 @@ def send_confirmation_mail(reservation: Reservation) -> None:
     if show is None:
         raise ValueError("Event has no show to send a confirmation mail for")
     guests = list(reservation.guests.all())
-    payment = Payment.objects.filter(reservation=reservation).order_by("-created_at").first()
+    payment = (
+        Payment.objects.filter(reservation=reservation, status=Payment.Status.COMPLETED)
+        .order_by("-created_at")
+        .first()
+    )
 
     tickets = [
         (

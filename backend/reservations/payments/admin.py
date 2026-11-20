@@ -9,7 +9,8 @@ from django.utils import timezone
 from unfold.admin import ModelAdmin
 
 from events.forms import EmailTextForm
-from reservations import emails, tasks
+from reservations import tasks
+from reservations.admin import resend_confirmation_mails
 from reservations.models import Reservation
 from reservations.payments.models import Payment
 
@@ -147,9 +148,9 @@ class PaymentAdmin(ModelAdmin):
 
     @admin.action(description="Resend confirmation E-Mail")
     def resend_confirmation_mail(self, request: HttpRequest, queryset: QuerySet[Payment]) -> None:
-        for payment in queryset:
-            if payment.reservation:
-                emails.send_confirmation_mail(payment.reservation)
+        resend_confirmation_mails(
+            self, request, (payment.reservation for payment in queryset if payment.reservation)
+        )
 
     @admin.action(description="Send mail to Reservants")
     def send_to_reservants(
