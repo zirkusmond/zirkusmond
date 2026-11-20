@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDownIcon, CheckIcon } from "lucide-react";
-import { Field, FieldLabel } from "#/components/ui/field.tsx";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field.tsx";
 
 export interface SelectFieldProps {
   id: string;
@@ -9,6 +9,7 @@ export interface SelectFieldProps {
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
+  error?: string;
 }
 
 export default function SelectField({
@@ -18,6 +19,7 @@ export default function SelectField({
   value,
   onChange,
   options,
+  error,
 }: SelectFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,8 +54,9 @@ export default function SelectField({
         <button
           id={id}
           type="button"
+          aria-invalid={!!error}
           onClick={() => setIsOpen(!isOpen)}
-          className="flex h-10 sm:h-11 w-full items-center justify-between border-2 border-primary bg-transparent px-2 sm:px-3 text-base sm:text-lg text-white hover:bg-transparent"
+          className="flex h-10 sm:h-11 w-full items-center justify-between border-2 border-primary bg-transparent px-2 sm:px-3 text-base sm:text-lg text-white hover:bg-transparent aria-invalid:border-destructive"
         >
           <span className={"text-white"}>
             {selectedOption ? selectedOption.label : placeholder}
@@ -89,6 +92,7 @@ export default function SelectField({
           </div>
         )}
       </div>
+      {error && <FieldError>{error}</FieldError>}
     </Field>
   );
 }

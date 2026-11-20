@@ -30,6 +30,8 @@ export default function ReservationForm({
     setSelectedEventId,
     attendeeCount,
     setAttendeeCount,
+    fieldErrors,
+    clearFieldError,
   });
   const personalInfoFields = buildPersonalInfoFields(
     fieldErrors,

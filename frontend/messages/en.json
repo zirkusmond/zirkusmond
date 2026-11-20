@@ -21,6 +21,7 @@
   "form_newsletter": "I would like to receive the Zirkus Mond newsletter",
   "form_guest_number": "Guest {number}",
   "form_error_required": "Please fill out this field",
+  "form_error_event_required": "Please select a date",
   "form_error_invalid_email": "Please enter a valid email address",
 
   "button_back_to_home": "Back to Home",

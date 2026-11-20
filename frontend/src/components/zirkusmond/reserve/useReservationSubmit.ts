@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { Show } from "#/interfaces/show.ts";
 import { useCreateReservation, createPaymentIntent } from "#/lib/payments.ts";
 import { clearFieldError, validateReservationForm } from "./validateForm.ts";
-import { extractGuestFormData, saveDraft } from "./reservationDraft.ts";
+import { extractGuestFormData, updateDraft } from "./reservationDraft.ts";
 
 interface UseReservationSubmitParams {
   show: Show;
@@ -36,14 +36,11 @@ export const useReservationSubmit = ({
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLFormElement>) => {
+    // Only the uncontrolled text inputs are read here; the controlled fields
+    // (event, ticket count, price, newsletter) are persisted by an effect in
+    // ReservationPage, since this closure would only see their previous values.
     const formData = new FormData(e.currentTarget);
-    const guestFormData = extractGuestFormData(formData, guestCount);
-    saveDraft({
-      attendeeCount,
-      customPrice,
-      newsletter,
-      ...guestFormData,
-    });
+    updateDraft(extractGuestFormData(formData, guestCount));
   };
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -54,7 +51,12 @@ export const useReservationSubmit = ({
     const formData = new FormData(e.currentTarget);
     const guestFormData = extractGuestFormData(formData, guestCount);
 
-    const errors = validateReservationForm(guestFormData, guestCount, t);
+    const errors = validateReservationForm(
+      guestFormData,
+      guestCount,
+      selectedEventId,
+      t,
+    );
     setFieldErrors(errors);
 
     const firstErrorId = Object.keys(errors)[0];

@@ -27,6 +27,8 @@ interface BuildTicketFieldsParams {
   setSelectedEventId: (id: string) => void;
   attendeeCount: number;
   setAttendeeCount: (count: number) => void;
+  fieldErrors?: Record<string, string>;
+  clearFieldError?: (id: string) => void;
 }
 
 export const buildTicketFields = ({
@@ -35,6 +37,8 @@ export const buildTicketFields = ({
   setSelectedEventId,
   attendeeCount,
   setAttendeeCount,
+  fieldErrors = {},
+  clearFieldError = () => {},
 }: BuildTicketFieldsParams): DynamicFieldConfig[] => {
   return [
     {
@@ -43,7 +47,11 @@ export const buildTicketFields = ({
       label: i18n.t("form_event"),
       placeholder: i18n.t("form_event_placeholder"),
       value: selectedEventId,
-      onChange: setSelectedEventId,
+      onChange: (id) => {
+        setSelectedEventId(id);
+        clearFieldError("event");
+      },
+      error: fieldErrors["event"],
       options: show.upcomingEvents
         .filter((event: ShowEvent) => !event.soldOut)
         .map((event: ShowEvent) => ({

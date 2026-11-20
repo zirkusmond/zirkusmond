@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button.tsx";
 import { Loader2, CreditCard, ArrowLeft, TestTube } from "lucide-react";
@@ -11,7 +11,12 @@ import SlidingScale from "./components/SlidingScale.tsx";
 import SectionCard from "../general/SectionCard.tsx";
 import NavigationButtonWrapper from "../general/NavigationButtonWrapper.tsx";
 import { useTranslation } from "react-i18next";
-import { loadDraft, useFormStorage } from "./reservationDraft.ts";
+import {
+  loadDraft,
+  resolveInitialEventId,
+  updateDraft,
+  useFormStorage,
+} from "./reservationDraft.ts";
 import { useReservationSubmit } from "./useReservationSubmit.ts";
 
 interface ReservationPageProps {
@@ -26,8 +31,13 @@ export default function ReservationPage({ show }: ReservationPageProps) {
   const savedInputs = loadDraft();
   useFormStorage(savedInputs);
 
-  const [selectedEventId, setSelectedEventId] = useState(
-    show.upcomingEvents[0]?.id,
+  const [selectedEventId, setSelectedEventId] = useState(() =>
+    resolveInitialEventId(
+      show.upcomingEvents
+        .filter((event) => !event.soldOut)
+        .map((event) => event.id),
+      savedInputs?.eventId,
+    ),
   );
   const [attendeeCount, setAttendeeCount] = useState(
     () => savedInputs?.attendeeCount ?? 1,
@@ -44,6 +54,18 @@ export default function ReservationPage({ show }: ReservationPageProps) {
   );
 
   const guestCount = Math.min(9, Math.max(0, attendeeCount - 1));
+
+  // Persist the controlled fields whenever they change. These are driven by
+  // buttons/sliders/the custom select, which don't fire the form's onChange,
+  // so they can't rely on handleFormChange.
+  useEffect(() => {
+    updateDraft({
+      eventId: selectedEventId,
+      attendeeCount,
+      customPrice,
+      newsletter,
+    });
+  }, [selectedEventId, attendeeCount, customPrice, newsletter]);
 
   const {
     handleSubmit,

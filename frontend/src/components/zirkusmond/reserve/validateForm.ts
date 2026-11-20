@@ -9,12 +9,17 @@ export const isValidEmail = (email: string): boolean => EMAIL_REGEX.test(email);
 export const validateReservationForm = (
   guestFormData: GuestFormData,
   guestCount: number,
+  eventId: string,
   t: TFunction,
 ): Record<string, string> => {
   const { firstName, lastName, email } = guestFormData;
   const GENERIC_ERROR = t("form_error_required");
   const errors: Record<string, string> = {};
 
+  // First, so it's the field that gets focus when several are missing.
+  if (!eventId) {
+    errors["event"] = t("form_error_event_required");
+  }
   if (!firstName) {
     errors["first-name"] = GENERIC_ERROR;
   }
