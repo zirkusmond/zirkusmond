@@ -44,6 +44,28 @@ pnpm exec tsc --noEmit  # typecheck (what CI runs)
 
 `make dev` from the repo root runs the Django dev server and the frontend dev server together.
 
+### E2E tests (Playwright)
+
+```bash
+pnpm run e2e:install   # once, in frontend/: downloads Chromium
+make e2e               # from repo root: starts Mailpit (Docker), then `pnpm run e2e`
+pnpm run e2e           # in frontend/, if Mailpit is already running
+```
+
+`frontend/e2e/happy-path.spec.ts` covers home → show → reservation form → Stripe payment →
+confirmation email → staff check-in. `playwright.config.ts` starts its own Django on :8100
+(`config.settings.e2e`, fresh `backend/e2e.sqlite3` seeded by `manage.py seed_e2e`) and frontend
+on :3100. Requirements: Docker (Mailpit, SMTP :1025 / API+UI :8025), and Stripe **test** keys —
+`STRIPE_TEST_SECRET_KEY` (`.envrc`) and `VITE_STRIPE_PUBLISHABLE_KEY` (`frontend/.env`). The test
+pays with the 4242 card in the real PaymentElement, then signs and POSTs the
+`payment_intent.succeeded` webhook itself (fixed `whsec_e2e` secret), so no `stripe listen` is
+needed. Check-in calls the scanner's API endpoint directly as a staff user (no camera).
+
+The `e2e` job in `prod.yml` runs this before every production deploy (Mailpit as a service
+container) and blocks `build_and_deploy_image` if it fails; the Playwright report is uploaded as
+an artifact on failure. It needs the repo secrets `STRIPE_TEST_SECRET_KEY` and
+`STRIPE_TEST_PUBLISHABLE_KEY`.
+
 ### CI
 
 GitHub Actions (`.github/workflows/tests.yml`) runs `uv run pytest` on the backend and
