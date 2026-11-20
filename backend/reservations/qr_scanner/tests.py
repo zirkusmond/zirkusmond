@@ -220,6 +220,40 @@ class CheckInViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["success"])
 
+    def test_abandoned_payment_blocks_reservation_check_in(self) -> None:
+        self._make_payment(Payment.Status.ABANDONED)
+        response = self.client.post(self._url(self.reservation.id))
+        self.assertEqual(response.status_code, 402)
+        self.assertIn("not completed", response.json()["error"])
+
+    def test_abandoned_payment_blocks_guest_check_in(self) -> None:
+        self._make_payment(Payment.Status.ABANDONED)
+        response = self.client.post(self._url(self.guest.ticket_id))
+        self.assertEqual(response.status_code, 402)
+        self.assertIn("not completed", response.json()["error"])
+
+    def test_abandoned_payment_does_not_mark_checked_in(self) -> None:
+        self._make_payment(Payment.Status.ABANDONED)
+        self.client.post(self._url(self.reservation.id))
+        self.client.post(self._url(self.guest.ticket_id))
+        self.reservation.refresh_from_db()
+        self.guest.refresh_from_db()
+        self.assertFalse(self.reservation.checked_in)
+        self.assertFalse(self.guest.checked_in)
+
+    def test_pending_payment_blocks_check_in(self) -> None:
+        self._make_payment(Payment.Status.PENDING)
+        response = self.client.post(self._url(self.reservation.id))
+        self.assertEqual(response.status_code, 402)
+        self.assertIn("not completed", response.json()["error"])
+
+    def test_completed_payment_with_later_abandoned_attempt_allows_check_in(self) -> None:
+        self._make_payment(Payment.Status.COMPLETED)
+        self._make_payment(Payment.Status.ABANDONED)
+        response = self.client.post(self._url(self.reservation.id))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+
 
 # ---------------------------------------------------------------------------
 # Check-in view — ?event=<id> scoping

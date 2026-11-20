@@ -7,13 +7,22 @@ from reservations.models import Guest, Reservation
 from reservations.payments.models import Payment
 
 
-def _payment_invalid(reservation: Reservation) -> bool:
-    """Check if the payment is failed or refunded."""
-    payment = reservation.payment_set.order_by("-created_at").first()
-    return payment is not None and payment.status in (
-        Payment.Status.FAILED,
-        Payment.Status.REFUNDED,
-    )
+def _payment_error(reservation: Reservation) -> str | None:
+    """Return an error message if the reservation's payment state forbids check-in.
+
+    Reservations without any Payment rows (e.g. comps added in the admin) are allowed.
+    Reservations that went through the online flow must have a completed payment: an
+    abandoned or pending attempt must never let anyone in, even if a confirmation mail
+    with QR codes was sent for it by mistake.
+    """
+    payments = list(reservation.payment_set.order_by("-created_at"))
+    if not payments:
+        return None
+    if payments[0].status in (Payment.Status.FAILED, Payment.Status.REFUNDED):
+        return "Payment failed or refunded"
+    if not any(p.status == Payment.Status.COMPLETED for p in payments):
+        return "Payment not completed"
+    return None
 
 
 def _validate_check_in(
@@ -32,10 +41,11 @@ def _validate_check_in(
             "guests": names,
         }, 409
 
-    # Check if payment is invalid (failed or refunded)
-    if _payment_invalid(reservation):
+    # Check if payment is invalid (failed, refunded, or never completed)
+    payment_error = _payment_error(reservation)
+    if payment_error:
         return {
-            "error": "Payment failed or refunded",
+            "error": payment_error,
             "reservation_number": str(ticket_id),
             "guests": names,
         }, 402
