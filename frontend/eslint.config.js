@@ -28,6 +28,9 @@ export default [
       ".tanstack/**",
       ".wrangler/**",
       ".vinxi/**",
+      // Playwright output
+      "test-results/**",
+      "playwright-report/**",
     ],
   },
 ];

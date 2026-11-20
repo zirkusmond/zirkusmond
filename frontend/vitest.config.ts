@@ -8,5 +8,7 @@ export default defineConfig({
   plugins: [viteReact()],
   test: {
     environment: "jsdom",
+    // Playwright specs live in e2e/ and run via `pnpm e2e`, not vitest.
+    exclude: ["**/node_modules/**", "e2e/**"],
   },
 });

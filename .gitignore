@@ -27,6 +27,12 @@ frontend/.vinxi
 frontend/__unconfig*
 todos.json
 
+# E2E (Playwright)
+backend/e2e.sqlite3*
+frontend/e2e/.state.json
+frontend/test-results/
+frontend/playwright-report/
+
 
 
 frontend-1/node_modules/
